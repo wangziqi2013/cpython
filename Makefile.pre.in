@@ -265,7 +265,7 @@ PY_ENABLE_SHARED=	@PY_ENABLE_SHARED@
 STATIC_LIBPYTHON=	@STATIC_LIBPYTHON@
 
 
-LIBS=		@LIBS@
+LIBS=		@LIBS@ -L./mallocless_python_hook/ -lmallocless_python_hook
 LIBM=		@LIBM@
 LIBC=		@LIBC@
 SYSLIBS=	$(LIBM) $(LIBC)
@@ -591,8 +591,8 @@ LIBEXPAT_HEADERS= \
 
 # Default target
 all:		@DEF_MAKE_ALL_RULE@
-build_all:	check-clean-src $(BUILDPYTHON) oldsharedmods sharedmods gdbhooks \
-		Programs/_testembed python-config
+build_all:	check-clean-src mallocless_python_hook/libmallocless_python_hook.so $(BUILDPYTHON) oldsharedmods sharedmods gdbhooks \
+		Programs/_testembed python-config 
 
 # Check that the source is clean when building out of source.
 check-clean-src:
@@ -709,7 +709,7 @@ clinic: check-clean-src $(srcdir)/Modules/_blake2/blake2s_impl.c
 
 # Build the interpreter
 $(BUILDPYTHON):	Programs/python.o $(LIBRARY_DEPS)
-	$(LINKCC) $(PY_CORE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS)
+	$(LINKCC) $(PY_CORE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) -Lmallocless_python_hook -lmallocless_python_hook
 
 platform: $(BUILDPYTHON) pybuilddir.txt
 	$(RUNSHARED) $(PYTHON_FOR_BUILD) -c 'import sys ; from sysconfig import get_platform ; print("%s-%d.%d" % (get_platform(), *sys.version_info[:2]))' >platform
@@ -969,64 +969,64 @@ DEEPFREEZE_DEPS=$(srcdir)/Tools/scripts/deepfreeze.py _bootstrap_python
 # BEGIN: deepfreeze modules
 
 Python/deepfreeze/importlib._bootstrap.c: Python/frozen_modules/importlib._bootstrap.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/importlib._bootstrap.h -m importlib._bootstrap -o Python/deepfreeze/importlib._bootstrap.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/importlib._bootstrap.h -m importlib._bootstrap -o Python/deepfreeze/importlib._bootstrap.c
 
 Python/deepfreeze/importlib._bootstrap_external.c: Python/frozen_modules/importlib._bootstrap_external.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/importlib._bootstrap_external.h -m importlib._bootstrap_external -o Python/deepfreeze/importlib._bootstrap_external.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/importlib._bootstrap_external.h -m importlib._bootstrap_external -o Python/deepfreeze/importlib._bootstrap_external.c
 
 Python/deepfreeze/zipimport.c: Python/frozen_modules/zipimport.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/zipimport.h -m zipimport -o Python/deepfreeze/zipimport.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/zipimport.h -m zipimport -o Python/deepfreeze/zipimport.c
 
 Python/deepfreeze/abc.c: Python/frozen_modules/abc.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/abc.h -m abc -o Python/deepfreeze/abc.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/abc.h -m abc -o Python/deepfreeze/abc.c
 
 Python/deepfreeze/codecs.c: Python/frozen_modules/codecs.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/codecs.h -m codecs -o Python/deepfreeze/codecs.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/codecs.h -m codecs -o Python/deepfreeze/codecs.c
 
 Python/deepfreeze/io.c: Python/frozen_modules/io.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/io.h -m io -o Python/deepfreeze/io.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/io.h -m io -o Python/deepfreeze/io.c
 
 Python/deepfreeze/_collections_abc.c: Python/frozen_modules/_collections_abc.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/_collections_abc.h -m _collections_abc -o Python/deepfreeze/_collections_abc.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/_collections_abc.h -m _collections_abc -o Python/deepfreeze/_collections_abc.c
 
 Python/deepfreeze/_sitebuiltins.c: Python/frozen_modules/_sitebuiltins.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/_sitebuiltins.h -m _sitebuiltins -o Python/deepfreeze/_sitebuiltins.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/_sitebuiltins.h -m _sitebuiltins -o Python/deepfreeze/_sitebuiltins.c
 
 Python/deepfreeze/genericpath.c: Python/frozen_modules/genericpath.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/genericpath.h -m genericpath -o Python/deepfreeze/genericpath.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/genericpath.h -m genericpath -o Python/deepfreeze/genericpath.c
 
 Python/deepfreeze/ntpath.c: Python/frozen_modules/ntpath.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/ntpath.h -m ntpath -o Python/deepfreeze/ntpath.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/ntpath.h -m ntpath -o Python/deepfreeze/ntpath.c
 
 Python/deepfreeze/posixpath.c: Python/frozen_modules/posixpath.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/posixpath.h -m posixpath -o Python/deepfreeze/posixpath.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/posixpath.h -m posixpath -o Python/deepfreeze/posixpath.c
 
 Python/deepfreeze/os.c: Python/frozen_modules/os.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/os.h -m os -o Python/deepfreeze/os.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/os.h -m os -o Python/deepfreeze/os.c
 
 Python/deepfreeze/site.c: Python/frozen_modules/site.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/site.h -m site -o Python/deepfreeze/site.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/site.h -m site -o Python/deepfreeze/site.c
 
 Python/deepfreeze/stat.c: Python/frozen_modules/stat.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/stat.h -m stat -o Python/deepfreeze/stat.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/stat.h -m stat -o Python/deepfreeze/stat.c
 
 Python/deepfreeze/__hello__.c: Python/frozen_modules/__hello__.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/__hello__.h -m __hello__ -o Python/deepfreeze/__hello__.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/__hello__.h -m __hello__ -o Python/deepfreeze/__hello__.c
 
 Python/deepfreeze/__phello__.c: Python/frozen_modules/__phello__.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/__phello__.h -m __phello__ -o Python/deepfreeze/__phello__.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/__phello__.h -m __phello__ -o Python/deepfreeze/__phello__.c
 
 Python/deepfreeze/__phello__.ham.c: Python/frozen_modules/__phello__.ham.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/__phello__.ham.h -m __phello__.ham -o Python/deepfreeze/__phello__.ham.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/__phello__.ham.h -m __phello__.ham -o Python/deepfreeze/__phello__.ham.c
 
 Python/deepfreeze/__phello__.ham.eggs.c: Python/frozen_modules/__phello__.ham.eggs.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/__phello__.ham.eggs.h -m __phello__.ham.eggs -o Python/deepfreeze/__phello__.ham.eggs.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/__phello__.ham.eggs.h -m __phello__.ham.eggs -o Python/deepfreeze/__phello__.ham.eggs.c
 
 Python/deepfreeze/__phello__.spam.c: Python/frozen_modules/__phello__.spam.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/__phello__.spam.h -m __phello__.spam -o Python/deepfreeze/__phello__.spam.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/__phello__.spam.h -m __phello__.spam -o Python/deepfreeze/__phello__.spam.c
 
 Python/deepfreeze/frozen_only.c: Python/frozen_modules/frozen_only.h $(DEEPFREEZE_DEPS)
-	$(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/frozen_only.h -m frozen_only -o Python/deepfreeze/frozen_only.c
+	LD_LIBRARY_PATH=./mallocless_python_hook $(PYTHON_FOR_FREEZE) $(srcdir)/Tools/scripts/deepfreeze.py Python/frozen_modules/frozen_only.h -m frozen_only -o Python/deepfreeze/frozen_only.c
 
 # END: deepfreeze modules
 
@@ -1089,70 +1089,70 @@ Programs/_freeze_module: Programs/_freeze_module.o Modules/getpath_noop.o $(LIBR
 # BEGIN: freezing modules
 
 Python/frozen_modules/importlib._bootstrap.h: $(FREEZE_MODULE) Lib/importlib/_bootstrap.py
-	$(FREEZE_MODULE) importlib._bootstrap $(srcdir)/Lib/importlib/_bootstrap.py Python/frozen_modules/importlib._bootstrap.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) importlib._bootstrap $(srcdir)/Lib/importlib/_bootstrap.py Python/frozen_modules/importlib._bootstrap.h
 
 Python/frozen_modules/importlib._bootstrap_external.h: $(FREEZE_MODULE) Lib/importlib/_bootstrap_external.py
-	$(FREEZE_MODULE) importlib._bootstrap_external $(srcdir)/Lib/importlib/_bootstrap_external.py Python/frozen_modules/importlib._bootstrap_external.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) importlib._bootstrap_external $(srcdir)/Lib/importlib/_bootstrap_external.py Python/frozen_modules/importlib._bootstrap_external.h
 
 Python/frozen_modules/zipimport.h: $(FREEZE_MODULE) Lib/zipimport.py
-	$(FREEZE_MODULE) zipimport $(srcdir)/Lib/zipimport.py Python/frozen_modules/zipimport.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) zipimport $(srcdir)/Lib/zipimport.py Python/frozen_modules/zipimport.h
 
 Python/frozen_modules/abc.h: $(FREEZE_MODULE) Lib/abc.py
-	$(FREEZE_MODULE) abc $(srcdir)/Lib/abc.py Python/frozen_modules/abc.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) abc $(srcdir)/Lib/abc.py Python/frozen_modules/abc.h
 
 Python/frozen_modules/codecs.h: $(FREEZE_MODULE) Lib/codecs.py
-	$(FREEZE_MODULE) codecs $(srcdir)/Lib/codecs.py Python/frozen_modules/codecs.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) codecs $(srcdir)/Lib/codecs.py Python/frozen_modules/codecs.h
 
 Python/frozen_modules/io.h: $(FREEZE_MODULE) Lib/io.py
-	$(FREEZE_MODULE) io $(srcdir)/Lib/io.py Python/frozen_modules/io.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) io $(srcdir)/Lib/io.py Python/frozen_modules/io.h
 
 Python/frozen_modules/_collections_abc.h: $(FREEZE_MODULE) Lib/_collections_abc.py
-	$(FREEZE_MODULE) _collections_abc $(srcdir)/Lib/_collections_abc.py Python/frozen_modules/_collections_abc.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) _collections_abc $(srcdir)/Lib/_collections_abc.py Python/frozen_modules/_collections_abc.h
 
 Python/frozen_modules/_sitebuiltins.h: $(FREEZE_MODULE) Lib/_sitebuiltins.py
-	$(FREEZE_MODULE) _sitebuiltins $(srcdir)/Lib/_sitebuiltins.py Python/frozen_modules/_sitebuiltins.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) _sitebuiltins $(srcdir)/Lib/_sitebuiltins.py Python/frozen_modules/_sitebuiltins.h
 
 Python/frozen_modules/genericpath.h: $(FREEZE_MODULE) Lib/genericpath.py
-	$(FREEZE_MODULE) genericpath $(srcdir)/Lib/genericpath.py Python/frozen_modules/genericpath.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) genericpath $(srcdir)/Lib/genericpath.py Python/frozen_modules/genericpath.h
 
 Python/frozen_modules/ntpath.h: $(FREEZE_MODULE) Lib/ntpath.py
-	$(FREEZE_MODULE) ntpath $(srcdir)/Lib/ntpath.py Python/frozen_modules/ntpath.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) ntpath $(srcdir)/Lib/ntpath.py Python/frozen_modules/ntpath.h
 
 Python/frozen_modules/posixpath.h: $(FREEZE_MODULE) Lib/posixpath.py
-	$(FREEZE_MODULE) posixpath $(srcdir)/Lib/posixpath.py Python/frozen_modules/posixpath.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) posixpath $(srcdir)/Lib/posixpath.py Python/frozen_modules/posixpath.h
 
 Python/frozen_modules/os.h: $(FREEZE_MODULE) Lib/os.py
-	$(FREEZE_MODULE) os $(srcdir)/Lib/os.py Python/frozen_modules/os.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) os $(srcdir)/Lib/os.py Python/frozen_modules/os.h
 
 Python/frozen_modules/site.h: $(FREEZE_MODULE) Lib/site.py
-	$(FREEZE_MODULE) site $(srcdir)/Lib/site.py Python/frozen_modules/site.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) site $(srcdir)/Lib/site.py Python/frozen_modules/site.h
 
 Python/frozen_modules/stat.h: $(FREEZE_MODULE) Lib/stat.py
-	$(FREEZE_MODULE) stat $(srcdir)/Lib/stat.py Python/frozen_modules/stat.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) stat $(srcdir)/Lib/stat.py Python/frozen_modules/stat.h
 
 Python/frozen_modules/__hello__.h: $(FREEZE_MODULE) Lib/__hello__.py
-	$(FREEZE_MODULE) __hello__ $(srcdir)/Lib/__hello__.py Python/frozen_modules/__hello__.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) __hello__ $(srcdir)/Lib/__hello__.py Python/frozen_modules/__hello__.h
 
 Python/frozen_modules/__phello__.h: $(FREEZE_MODULE) Lib/__phello__/__init__.py
-	$(FREEZE_MODULE) __phello__ $(srcdir)/Lib/__phello__/__init__.py Python/frozen_modules/__phello__.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) __phello__ $(srcdir)/Lib/__phello__/__init__.py Python/frozen_modules/__phello__.h
 
 Python/frozen_modules/__phello__.ham.h: $(FREEZE_MODULE) Lib/__phello__/ham/__init__.py
-	$(FREEZE_MODULE) __phello__.ham $(srcdir)/Lib/__phello__/ham/__init__.py Python/frozen_modules/__phello__.ham.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) __phello__.ham $(srcdir)/Lib/__phello__/ham/__init__.py Python/frozen_modules/__phello__.ham.h
 
 Python/frozen_modules/__phello__.ham.eggs.h: $(FREEZE_MODULE) Lib/__phello__/ham/eggs.py
-	$(FREEZE_MODULE) __phello__.ham.eggs $(srcdir)/Lib/__phello__/ham/eggs.py Python/frozen_modules/__phello__.ham.eggs.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) __phello__.ham.eggs $(srcdir)/Lib/__phello__/ham/eggs.py Python/frozen_modules/__phello__.ham.eggs.h
 
 Python/frozen_modules/__phello__.spam.h: $(FREEZE_MODULE) Lib/__phello__/spam.py
-	$(FREEZE_MODULE) __phello__.spam $(srcdir)/Lib/__phello__/spam.py Python/frozen_modules/__phello__.spam.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) __phello__.spam $(srcdir)/Lib/__phello__/spam.py Python/frozen_modules/__phello__.spam.h
 
 Python/frozen_modules/frozen_only.h: $(FREEZE_MODULE) Tools/freeze/flag.py
-	$(FREEZE_MODULE) frozen_only $(srcdir)/Tools/freeze/flag.py Python/frozen_modules/frozen_only.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) frozen_only $(srcdir)/Tools/freeze/flag.py Python/frozen_modules/frozen_only.h
 
 # END: freezing modules
 
 # We manually freeze getpath.py rather than through freeze_modules
 Python/frozen_modules/getpath.h: $(FREEZE_MODULE) Modules/getpath.py
-	$(FREEZE_MODULE) getpath $(srcdir)/Modules/getpath.py Python/frozen_modules/getpath.h
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(FREEZE_MODULE) getpath $(srcdir)/Modules/getpath.py Python/frozen_modules/getpath.h
 
 Tools/scripts/freeze_modules.py: $(FREEZE_MODULE)
 
@@ -1236,6 +1236,9 @@ Python/sysmodule.o: $(srcdir)/Python/sysmodule.c Makefile $(srcdir)/Include/pydt
 		-DABIFLAGS='"$(ABIFLAGS)"' \
 		$(MULTIARCH_CPPFLAGS) \
 		-o $@ $(srcdir)/Python/sysmodule.c
+
+mallocless_python_hook/libmallocless_python_hook.so: $(srcdir)/mallocless_python_hook/mallocless_python_hook.c Makefile $(srcdir)/mallocless_python_hook/mallocless_python_hook.h
+	$(CC) $(srcdir)/mallocless_python_hook/mallocless_python_hook.c -o $(srcdir)/mallocless_python_hook/libmallocless_python_hook.so -fPIC -shared -g -Wall -Wextra
 
 $(IO_OBJS): $(IO_H)
 
