@@ -1,6 +1,8 @@
 #include "Python.h"
 #include "pycore_pymem.h"         // _PyTraceMalloc_Config
 
+#include "../mallocless_python_hook/mallocless_python_hook.h"
+
 #include <stdbool.h>
 #include <stdlib.h>               // malloc()
 
@@ -98,7 +100,7 @@ _PyMem_RawMalloc(void *ctx, size_t size)
     if (size == 0)
         size = 1;
     void *p = malloc(size);
-    printf("Ziqi: PyMem_RawMalloc request %lu ret %p\n", size, p);
+    mallocless_python_hook_PyMem_RawMalloc(size, p);
     return p;
 }
 
@@ -113,7 +115,9 @@ _PyMem_RawCalloc(void *ctx, size_t nelem, size_t elsize)
         nelem = 1;
         elsize = 1;
     }
-    return calloc(nelem, elsize);
+    void *p = calloc(nelem, elsize);
+    mallocless_python_hook_PyMem_RawCalloc(nelem, elsize, p);
+    return p;
 }
 
 static void *
@@ -121,13 +125,15 @@ _PyMem_RawRealloc(void *ctx, void *ptr, size_t size)
 {
     if (size == 0)
         size = 1;
-    return realloc(ptr, size);
+    void *new_ptr = realloc(ptr, size);
+    mallocless_python_hook_PyMem_RawRealloc(ptr, size, new_ptr);
+    return new_ptr;
 }
 
 static void
 _PyMem_RawFree(void *ctx, void *ptr)
 {
-    printf("Ziqi: _PyMem_RawFree ptr %p\n", ptr);
+    mallocless_python_hook_PyMem_RawFree(ptr);
     free(ptr);
 }
 
@@ -725,7 +731,6 @@ PyObject_Realloc(void *ptr, size_t new_size)
 void
 PyObject_Free(void *ptr)
 {
-    printf("Ziqi: PyObject_Free ptr %p\n", ptr);
     _PyObject.free(_PyObject.ctx, ptr);
 }
 
@@ -1992,7 +1997,7 @@ _PyObject_Malloc(void *ctx, size_t nbytes)
     if (ptr != NULL) {
         raw_allocated_blocks++;
     }
-    printf("Ziqi: PyObject_Malloc request %lu ptr %p\n", nbytes, ptr);
+    mallocless_python_hook_PyObject_Malloc(nbytes, ptr);
     return ptr;
 }
 
@@ -2013,6 +2018,7 @@ _PyObject_Calloc(void *ctx, size_t nelem, size_t elsize)
     if (ptr != NULL) {
         raw_allocated_blocks++;
     }
+    mallocless_python_hook_PyObject_Calloc(nelem, elsize, ptr);
     return ptr;
 }
 
@@ -2270,7 +2276,7 @@ _PyObject_Free(void *ctx, void *p)
     }
 
     if (UNLIKELY(!pymalloc_free(ctx, p))) {
-        printf("Ziqi: _PyObject_Free ptr %p\n", p);
+        mallocless_python_hook_PyObject_Free(p);
         /* pymalloc didn't allocate this address */
         PyMem_RawFree(p);
         raw_allocated_blocks--;
@@ -2352,16 +2358,17 @@ static void *
 _PyObject_Realloc(void *ctx, void *ptr, size_t nbytes)
 {
     void *ptr2;
+    void *new_ptr;
 
     if (ptr == NULL) {
-        return _PyObject_Malloc(ctx, nbytes);
+        new_ptr = _PyObject_Malloc(ctx, nbytes);
+    } else if (pymalloc_realloc(ctx, &ptr2, ptr, nbytes)) {
+        new_ptr = ptr2;
+    } else {
+        new_ptr = PyMem_RawRealloc(ptr, nbytes);
+        mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
     }
-
-    if (pymalloc_realloc(ctx, &ptr2, ptr, nbytes)) {
-        return ptr2;
-    }
-
-    return PyMem_RawRealloc(ptr, nbytes);
+    return new_ptr;
 }
 
 #else   /* ! WITH_PYMALLOC */
