@@ -729,6 +729,8 @@ preconfig_init_allocator(PyPreConfig *config)
                 return _PyStatus_ERR("PYTHONMALLOC: unknown allocator");
             }
             config->allocator = (int)name;
+            printf("Ziqi: Successfully configured alloc \"%s\", enum value %d\n",
+                envvar, name);
         }
     }
 

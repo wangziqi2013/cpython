@@ -97,7 +97,9 @@ _PyMem_RawMalloc(void *ctx, size_t size)
        To solve these problems, allocate an extra byte. */
     if (size == 0)
         size = 1;
-    return malloc(size);
+    void *p = malloc(size);
+    printf("Ziqi: PyMem_RawMalloc request %lu ret %p\n", size, p);
+    return p;
 }
 
 static void *
@@ -125,6 +127,7 @@ _PyMem_RawRealloc(void *ctx, void *ptr, size_t size)
 static void
 _PyMem_RawFree(void *ctx, void *ptr)
 {
+    printf("Ziqi: _PyMem_RawFree ptr %p\n", ptr);
     free(ptr);
 }
 
@@ -582,7 +585,9 @@ PyMem_RawMalloc(size_t size)
      */
     if (size > (size_t)PY_SSIZE_T_MAX)
         return NULL;
-    return _PyMem_Raw.malloc(_PyMem_Raw.ctx, size);
+    
+    void *p = _PyMem_Raw.malloc(_PyMem_Raw.ctx, size);
+    return p;
 }
 
 void *
@@ -695,7 +700,8 @@ PyObject_Malloc(size_t size)
     /* see PyMem_RawMalloc() */
     if (size > (size_t)PY_SSIZE_T_MAX)
         return NULL;
-    return _PyObject.malloc(_PyObject.ctx, size);
+    void *p = _PyObject.malloc(_PyObject.ctx, size);
+    return p;
 }
 
 void *
@@ -719,6 +725,7 @@ PyObject_Realloc(void *ptr, size_t new_size)
 void
 PyObject_Free(void *ptr)
 {
+    printf("Ziqi: PyObject_Free ptr %p\n", ptr);
     _PyObject.free(_PyObject.ctx, ptr);
 }
 
@@ -1985,6 +1992,7 @@ _PyObject_Malloc(void *ctx, size_t nbytes)
     if (ptr != NULL) {
         raw_allocated_blocks++;
     }
+    printf("Ziqi: PyObject_Malloc request %lu ptr %p\n", nbytes, ptr);
     return ptr;
 }
 
@@ -2262,6 +2270,7 @@ _PyObject_Free(void *ctx, void *p)
     }
 
     if (UNLIKELY(!pymalloc_free(ctx, p))) {
+        printf("Ziqi: _PyObject_Free ptr %p\n", p);
         /* pymalloc didn't allocate this address */
         PyMem_RawFree(p);
         raw_allocated_blocks--;
