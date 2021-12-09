@@ -1439,6 +1439,7 @@ bytes_concat(PyObject *a, PyObject *b)
 static PyObject *
 bytes_repeat(PyBytesObject *a, Py_ssize_t n)
 {
+    //printf("Ziqi: bytes repeat %lu\n", n);
     Py_ssize_t i;
     Py_ssize_t j;
     Py_ssize_t size;
