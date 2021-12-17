@@ -5,6 +5,8 @@
 #include "pycore_pymem.h"         // _PyMem_GetAllocatorName()
 #include "pycore_runtime.h"       // _PyRuntime_Initialize()
 
+#include "../mallocless_python_hook/mallocless_python_hook.h" // zsim_magic_op_hello_world()
+
 #include <locale.h>               // setlocale()
 #include <stdlib.h>               // getenv()
 
@@ -729,6 +731,7 @@ preconfig_init_allocator(PyPreConfig *config)
                 return _PyStatus_ERR("PYTHONMALLOC: unknown allocator");
             }
             config->allocator = (int)name;
+	    zsim_magic_op_hello_world();
             printf("Ziqi: Successfully configured alloc \"%s\", enum value %d\n",
                 envvar, name);
         }
