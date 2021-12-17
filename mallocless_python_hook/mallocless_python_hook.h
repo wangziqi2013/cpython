@@ -3,6 +3,7 @@
 #define _MALLOCLESS_PYTHON_HOOK_H
 
 #include <stdint.h>
+#include "zsim_magic_ops.h"
 
 #ifdef __cplusplus
 extern "C" {
