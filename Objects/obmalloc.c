@@ -99,6 +99,7 @@ _PyMem_RawMalloc(void *ctx, size_t size)
        To solve these problems, allocate an extra byte. */
     if (size == 0)
         size = 1;
+    zsim_magic_op_pause_sim();
     void *p = malloc(size);
     mallocless_python_hook_PyMem_RawMalloc(size, p);
     return p;
@@ -115,6 +116,7 @@ _PyMem_RawCalloc(void *ctx, size_t nelem, size_t elsize)
         nelem = 1;
         elsize = 1;
     }
+    zsim_magic_op_pause_sim();
     void *p = calloc(nelem, elsize);
     mallocless_python_hook_PyMem_RawCalloc(nelem, elsize, p);
     return p;
@@ -125,6 +127,7 @@ _PyMem_RawRealloc(void *ctx, void *ptr, size_t size)
 {
     if (size == 0)
         size = 1;
+    zsim_magic_op_pause_sim();
     void *new_ptr = realloc(ptr, size);
     mallocless_python_hook_PyMem_RawRealloc(ptr, size, new_ptr);
     return new_ptr;
@@ -133,8 +136,9 @@ _PyMem_RawRealloc(void *ctx, void *ptr, size_t size)
 static void
 _PyMem_RawFree(void *ctx, void *ptr)
 {
-    mallocless_python_hook_PyMem_RawFree(ptr);
+    zsim_magic_op_pause_sim();
     free(ptr);
+    mallocless_python_hook_PyMem_RawFree(ptr);
 }
 
 
