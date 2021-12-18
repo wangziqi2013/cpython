@@ -1237,8 +1237,8 @@ Python/sysmodule.o: $(srcdir)/Python/sysmodule.c Makefile $(srcdir)/Include/pydt
 		$(MULTIARCH_CPPFLAGS) \
 		-o $@ $(srcdir)/Python/sysmodule.c
 
-mallocless_python_hook/libmallocless_python_hook.so: $(srcdir)/mallocless_python_hook/mallocless_python_hook.c Makefile $(srcdir)/mallocless_python_hook/mallocless_python_hook.h
-	$(CC) $(srcdir)/mallocless_python_hook/mallocless_python_hook.c -o $(srcdir)/mallocless_python_hook/libmallocless_python_hook.so -fPIC -shared -g -Wall -Wextra
+mallocless_python_hook/libmallocless_python_hook.so: $(srcdir)/mallocless_python_hook/mallocless_python_hook.c Makefile $(srcdir)/mallocless_python_hook/mallocless_python_hook.h $(srcdir)/mallocless_python_hook/zsim_magic_ops.h $(srcdir)/mallocless_python_hook/zsim_magic_ops.cpp
+	$(CC) $(srcdir)/mallocless_python_hook/mallocless_python_hook.c $(srcdir)/mallocless_python_hook/zsim_magic_ops.cpp -o $(srcdir)/mallocless_python_hook/libmallocless_python_hook.so -fPIC -shared -g -Wall -Wextra -Wl,--hash-style=both
 
 $(IO_OBJS): $(IO_H)
 
