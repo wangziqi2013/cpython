@@ -1,6 +1,8 @@
 #include "Python.h"
 #include "pycore_pymem.h"
 
+#include "../mallocless_python_hook/mallocless_python_hook.h"
+
 #include <stdbool.h>
 
 
@@ -1615,13 +1617,14 @@ failed:
     return NULL;
 }
 
-
 static void *
 _PyObject_Malloc(void *ctx, size_t nbytes)
 {
+    zsim_magic_op_pause_sim();
     void* ptr = pymalloc_alloc(ctx, nbytes);
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
+        mallocless_python_hook_PyObject_Malloc(nbytes, ptr);
         return ptr;
     }
 
@@ -1629,20 +1632,22 @@ _PyObject_Malloc(void *ctx, size_t nbytes)
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
     }
+    mallocless_python_hook_PyObject_Malloc(nbytes, ptr);
     return ptr;
 }
-
 
 static void *
 _PyObject_Calloc(void *ctx, size_t nelem, size_t elsize)
 {
+    zsim_magic_op_pause_sim();
     assert(elsize == 0 || nelem <= (size_t)PY_SSIZE_T_MAX / elsize);
     size_t nbytes = nelem * elsize;
 
-    void *ptr = pymalloc_alloc(ctx, nbytes);
+    void* ptr = pymalloc_alloc(ctx, nbytes);
     if (ptr != NULL) {
         memset(ptr, 0, nbytes);
         _Py_AllocatedBlocks++;
+        mallocless_python_hook_PyObject_Calloc(nelem, elsize, ptr);
         return ptr;
     }
 
@@ -1650,6 +1655,7 @@ _PyObject_Calloc(void *ctx, size_t nelem, size_t elsize)
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
     }
+    mallocless_python_hook_PyObject_Calloc(nelem, elsize, ptr);
     return ptr;
 }
 
@@ -1883,7 +1889,6 @@ success:
     return 1;
 }
 
-
 static void
 _PyObject_Free(void *ctx, void *p)
 {
@@ -1891,14 +1896,15 @@ _PyObject_Free(void *ctx, void *p)
     if (p == NULL) {
         return;
     }
-
+    zsim_magic_op_pause_sim();
     _Py_AllocatedBlocks--;
     if (!pymalloc_free(ctx, p)) {
         /* pymalloc didn't allocate this address */
         PyMem_RawFree(p);
     }
+    mallocless_python_hook_PyObject_Free(p);
+    return;
 }
-
 
 /* pymalloc realloc.
 
@@ -1969,21 +1975,21 @@ pymalloc_realloc(void *ctx, void **newptr_p, void *p, size_t nbytes)
     return 1;
 }
 
-
 static void *
 _PyObject_Realloc(void *ctx, void *ptr, size_t nbytes)
 {
     void *ptr2;
-
+    void *new_ptr;
+    zsim_magic_op_pause_sim();
     if (ptr == NULL) {
-        return _PyObject_Malloc(ctx, nbytes);
+        new_ptr = _PyObject_Malloc(ctx, nbytes);
+    } else if (pymalloc_realloc(ctx, &ptr2, ptr, nbytes)) {
+        new_ptr = ptr2;
+    } else {
+        new_ptr = PyMem_RawRealloc(ptr, nbytes);
     }
-
-    if (pymalloc_realloc(ctx, &ptr2, ptr, nbytes)) {
-        return ptr2;
-    }
-
-    return PyMem_RawRealloc(ptr, nbytes);
+    mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
+    return new_ptr;
 }
 
 #else   /* ! WITH_PYMALLOC */
