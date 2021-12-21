@@ -231,7 +231,7 @@ LDLIBRARYDIR=   @LDLIBRARYDIR@
 INSTSONAME=	@INSTSONAME@
 
 
-LIBS=		@LIBS@
+LIBS=		@LIBS@ -L./mallocless_python_hook/ -lmallocless_python_hook
 LIBM=		@LIBM@
 LIBC=		@LIBC@
 SYSLIBS=	$(LIBM) $(LIBC)
@@ -450,7 +450,7 @@ DTRACE_DEPS = \
 
 # Default target
 all:		@DEF_MAKE_ALL_RULE@
-build_all:	check-clean-src $(BUILDPYTHON) oldsharedmods sharedmods gdbhooks \
+build_all:	check-clean-src mallocless_python_hook/libmallocless_python_hook.so $(BUILDPYTHON) oldsharedmods sharedmods gdbhooks \
 		Programs/_testembed python-config
 
 # Check that the source is clean when building out of source.
@@ -566,7 +566,7 @@ clinic: check-clean-src $(srcdir)/Modules/_blake2/blake2s_impl.c
 
 # Build the interpreter
 $(BUILDPYTHON):	Programs/python.o $(LIBRARY) $(LDLIBRARY) $(PY3LIBRARY)
-	$(LINKCC) $(PY_CORE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS)
+	$(LINKCC) $(PY_CORE_LDFLAGS) $(LINKFORSHARED) -o $@ Programs/python.o $(BLDLIBRARY) $(LIBS) $(MODLIBS) $(SYSLIBS) -Lmallocless_python_hook -lmallocless_python_hook
 
 platform: $(BUILDPYTHON) pybuilddir.txt
 	$(RUNSHARED) $(PYTHON_FOR_BUILD) -c 'import sys ; from sysconfig import get_platform ; print("%s-%d.%d" % (get_platform(), *sys.version_info[:2]))' >platform
@@ -580,7 +580,7 @@ platform: $(BUILDPYTHON) pybuilddir.txt
 # or removed in case of failure.
 pybuilddir.txt: $(BUILDPYTHON)
 	@echo "none" > ./pybuilddir.txt
-	$(RUNSHARED) $(PYTHON_FOR_BUILD) -S -m sysconfig --generate-posix-vars ;\
+	LD_LIBRARY_PATH=./mallocless_python_hook/ $(RUNSHARED) $(PYTHON_FOR_BUILD) -S -m sysconfig --generate-posix-vars ;\
 	if test $$? -ne 0 ; then \
 		echo "generate-posix-vars failed" ; \
 		rm -f ./pybuilddir.txt ; \
@@ -799,6 +799,9 @@ Python/sysmodule.o: $(srcdir)/Python/sysmodule.c Makefile $(srcdir)/Include/pydt
 		-DABIFLAGS='"$(ABIFLAGS)"' \
 		$(MULTIARCH_CPPFLAGS) \
 		-o $@ $(srcdir)/Python/sysmodule.c
+
+mallocless_python_hook/libmallocless_python_hook.so: $(srcdir)/mallocless_python_hook/mallocless_python_hook.c Makefile $(srcdir)/mallocless_python_hook/mallocless_python_hook.h $(srcdir)/mallocless_python_hook/zsim_magic_ops.h $(srcdir)/mallocless_python_hook/zsim_magic_ops.cpp
+	$(CC) $(srcdir)/mallocless_python_hook/mallocless_python_hook.c $(srcdir)/mallocless_python_hook/zsim_magic_ops.cpp -o $(srcdir)/mallocless_python_hook/libmallocless_python_hook.so -fPIC -shared -g -Wall -Wextra -Wl,--hash-style=both
 
 $(IO_OBJS): $(IO_H)
 
