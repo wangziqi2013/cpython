@@ -57,6 +57,16 @@ void mallocless_python_hook_PyObject_Free(void *ptr) {
   return;
 }
 
+void malloc_python_hook_Python_start() {
+  return;
+}
+
+void malloc_python_hook_Python_end() {
+  // Print statistics
+  return;
+}
+
+
 #ifdef __cplusplus
 }
 #endif

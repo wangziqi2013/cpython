@@ -6,6 +6,8 @@
 #include "pycore_pymem.h"
 #include "pycore_pystate.h"
 
+#include "../mallocless_python_hook/mallocless_python_hook.h"
+
 #ifdef __FreeBSD__
 #  include <fenv.h>     /* fedisableexcept() */
 #endif
@@ -686,7 +688,9 @@ Py_RunMain(void)
 {
     int exitcode = 0;
 
+    malloc_python_hook_Python_start();
     pymain_run_python(&exitcode);
+    malloc_python_hook_Python_end();
 
     if (Py_FinalizeEx() < 0) {
         /* Value unlikely to be confused with a non-error exit status or
