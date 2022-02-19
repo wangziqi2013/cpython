@@ -76,7 +76,32 @@ typedef struct type_gen_alloc_struct_t {
 static type_gen_alloc_t *type_gen_alloc_head = NULL;
 static type_gen_alloc_t *type_gen_alloc_tail = NULL;
 
-
+void malloc_python_hook_type_gen_alloc(
+    const char *name, int base_size, int element_size, int total_size, uint64_t ret) {
+  type_gen_alloc_t *alloc = (type_gen_alloc_t *)malloc(sizeof(type_gen_alloc_t *));
+  if(alloc == NULL) {
+    printf("malloc_python_hook_type_gen_alloc() out of memory\n");
+    exit(1);
+  }
+  alloc->next = NULL;
+  alloc->name = malloc(strlen(name) + 1);
+  if(alloc->name == NULL) {
+    printf("malloc_python_hook_type_gen_alloc() out of memory\n");
+    exit(1);
+  }
+  strcpy(alloc->name, name);
+  alloc->base_size = base_size;
+  alloc->element_size = element_size;
+  alloc->total_size = total_size;
+  alloc->ret = ret;
+  if(type_gen_alloc_head == NULL) {
+    type_gen_alloc_head = type_gen_alloc_tail = alloc;
+  } else {
+    type_gen_alloc_tail->next = alloc;
+    type_gen_alloc_tail = alloc;
+  }
+  return;
+}
 
 #ifdef __cplusplus
 }
