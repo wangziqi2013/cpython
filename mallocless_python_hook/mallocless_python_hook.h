@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+#define FILE_LINE              __FILE__ __LINE__
+
 void malloc_python_hook_pyalloc_stat_print();
 
 void mallocless_python_hook_PyMem_RawMalloc(uint64_t size, void *ptr);

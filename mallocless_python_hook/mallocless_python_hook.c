@@ -9,11 +9,11 @@ extern "C" {
 #define PY_ALLOC_MEM    2
 #define PY_ALLOC_MALLOC 3
 
-typedef struct pyobject_alloc_struct_t {
+typedef struct pyalloc_struct_t {
   int type;
   uint64_t size;
   uint64_t ret;
-  struct pyobject_alloc_struct_t *next;
+  struct pyalloc_struct_t *next;
 } pyalloc_t;
 
 typedef struct type_gen_alloc_struct_t {
@@ -24,13 +24,13 @@ typedef struct type_gen_alloc_struct_t {
   struct type_gen_alloc_struct_t *next;
 } type_gen_alloc_t;
 
-static type_gen_alloc_t *pyalloc_head = NULL;
-static type_gen_alloc_t *pyalloc_tail = NULL;
+static pyalloc_t *pyalloc_head = NULL;
+static pyalloc_t *pyalloc_tail = NULL;
 uint64_t pyalloc_count = 0UL;
 
 void malloc_python_hook_pyalloc_stat_print() {
   printf("pyalloc_count = %lu\n", pyalloc_count);
-  type_gen_alloc_t *curr = pyalloc_head;
+  pyalloc_t *curr = pyalloc_head;
   const char *filename = "malloc_python_hook_py_alloc.csv";
   FILE *fp = fopen(filename, "w");
   if(fp == NULL) {
