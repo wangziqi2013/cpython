@@ -100,6 +100,13 @@ void zsim_magic_op_free(uint64_t ptr) {
   return;
 }
 
+void zsim_magic_op_append_stat_snapshot() {
+  zsim_magic_op_t op;
+  op.op = ZSIM_MAGIC_OP_APPEND_STAT_SNAPSHOT;
+  zsim_magic_op(&op);
+  return;
+}
+
 #ifdef __cplusplus
 }
 #endif
