@@ -3,6 +3,8 @@
 
 #include "pymem.h"   /* _Py_tracemalloc_config */
 
+#include "../mallocless_python_hook/mallocless_python_hook.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
