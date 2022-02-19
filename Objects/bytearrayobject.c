@@ -145,6 +145,9 @@ PyByteArray_FromStringAndSize(const char *bytes, Py_ssize_t size)
             Py_DECREF(new);
             return PyErr_NoMemory();
         }
+        malloc_python_hook_type_gen_alloc(
+            "bytearrayobject.c 149", 0, 0, (int)(alloc), 0,
+            (uint64_t)(new->ob_bytes));
         if (bytes != NULL && size > 0)
             memcpy(new->ob_bytes, bytes, size);
         new->ob_bytes[size] = '\0';  /* Trailing null byte */
@@ -234,6 +237,9 @@ PyByteArray_Resize(PyObject *self, Py_ssize_t requested_size)
             PyErr_NoMemory();
             return -1;
         }
+        malloc_python_hook_type_gen_alloc(
+            "bytearrayobject.c 241", 0, 0, (int)(alloc), 0,
+            (uint64_t)(sval));
         memcpy(sval, PyByteArray_AS_STRING(self),
                Py_MIN((size_t)requested_size, (size_t)Py_SIZE(self)));
         PyObject_Free(obj->ob_bytes);
@@ -944,6 +950,9 @@ bytearray_repr(PyByteArrayObject *self)
         PyErr_NoMemory();
         return NULL;
     }
+    malloc_python_hook_type_gen_alloc(
+        "bytearrayobject.c 954", 0, 0, (int)(newsize), 0,
+        (uint64_t)(buffer));
 
     /* Figure out which quote to use; single is preferred */
     quote = '\'';
