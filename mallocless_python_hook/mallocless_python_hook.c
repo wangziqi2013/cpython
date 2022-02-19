@@ -66,6 +66,17 @@ void malloc_python_hook_Python_end() {
   return;
 }
 
+typedef struct type_gen_alloc_struct_t {
+  const char *name;
+  int base_size, element_size, total_size;
+  uint64_t ret;
+  struct type_gen_alloc_struct_t *next;
+} type_gen_alloc_t;
+
+static type_gen_alloc_t *type_gen_alloc_head = NULL;
+static type_gen_alloc_t *type_gen_alloc_tail = NULL;
+
+
 
 #ifdef __cplusplus
 }
