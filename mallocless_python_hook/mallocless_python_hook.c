@@ -35,13 +35,18 @@ typedef struct type_gen_alloc_struct_t {
 
 static pyalloc_t *pyalloc_head = NULL;
 static pyalloc_t *pyalloc_tail = NULL;
+
 uint64_t pyalloc_object_malloc_count = 0UL;
 uint64_t pyalloc_object_calloc_count = 0UL;
 uint64_t pyalloc_object_realloc_count = 0UL;
 uint64_t pyalloc_object_free_count = 0UL;
 
 void malloc_python_hook_pyalloc_stat_print() {
-  printf("pyalloc_count = %lu\n", pyalloc_count);
+  printf("Object:\n");
+  printf("  pyalloc_object_malloc_count = %lu\n", pyalloc_object_malloc_count);
+  printf("  pyalloc_object_calloc_count = %lu\n", pyalloc_object_calloc_count);
+  printf("  pyalloc_object_realloc_count = %lu\n", pyalloc_object_realloc_count);
+  printf("  pyalloc_object_free_count = %lu\n", pyalloc_object_free_count);
   pyalloc_t *curr = pyalloc_head;
   const char *filename = "malloc_python_hook_py_alloc.csv";
   FILE *fp = fopen(filename, "w");
@@ -52,7 +57,7 @@ void malloc_python_hook_pyalloc_stat_print() {
   while(curr->next != NULL) {
     fprintf(fp, 
       "%d,%lu,%lu,%lu\n", 
-      curr->type, curr->arg1, curr->arg2, curr->ret,
+      curr->type, curr->arg1, curr->arg2, curr->ret
       );
     curr = curr->next;
   }
@@ -78,7 +83,11 @@ void malloc_python_hook_pyalloc_add(int type, uint64_t arg1, uint64_t arg2, uint
     pyalloc_tail = alloc;
   }
   switch(type) {
-    
+    case PYALLOC_OBJECT_MALLOC: pyalloc_object_malloc_count++; break;
+    case PYALLOC_OBJECT_CALLOC: pyalloc_object_calloc_count++; break;
+    case PYALLOC_OBJECT_REALLOC: pyalloc_object_realloc_count++; break;
+    case PYALLOC_OBJECT_FREE: pyalloc_object_free_count++; break;
+    default: break;
   }
   return;
 }
@@ -135,7 +144,7 @@ void mallocless_python_hook_PyObject_Realloc(void *old_ptr, uint64_t size, void 
 void mallocless_python_hook_PyObject_Free(void *ptr) {
   //zsim_magic_op_free((uint64_t)ptr);
   //zsim_magic_op_resume_sim();
-  malloc_python_hook_pyalloc_add(PYALLOC_OBJECT_FREE, (uint64_t)old_ptr, size, (uint64_t)new_ptr);
+  malloc_python_hook_pyalloc_add(PYALLOC_OBJECT_FREE, (uint64_t)ptr, 0UL, 0UL);
   return;
 }
 
