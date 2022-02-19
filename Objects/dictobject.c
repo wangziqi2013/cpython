@@ -562,6 +562,11 @@ static PyDictKeysObject *new_keys_object(Py_ssize_t size)
             PyErr_NoMemory();
             return NULL;
         }
+        malloc_python_hook_type_gen_alloc(
+            "dictobject.c 566", 0, 0, (int)(sizeof(PyDictKeysObject)
+                                            + es * size
+                                            + sizeof(PyDictKeyEntry) * usable), 0,
+            (uint64_t)dk);
     }
     _Py_INC_REFTOTAL;
     dk->dk_refcnt = 1;
@@ -656,6 +661,9 @@ clone_combined_dict(PyDictObject *orig)
         PyErr_NoMemory();
         return NULL;
     }
+    malloc_python_hook_type_gen_alloc(
+            "dictobject.c 665", 0, 0, (int)(keys_size), 0,
+            (uint64_t)keys);
 
     memcpy(keys, orig->ma_keys, keys_size);
 

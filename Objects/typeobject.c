@@ -1011,10 +1011,14 @@ PyType_GenericAlloc(PyTypeObject *type, Py_ssize_t nitems)
     const size_t size = _PyObject_VAR_SIZE(type, nitems+1);
     /* note that we need to add one, for the sentinel */
 
-    if (PyType_IS_GC(type))
+    if (PyType_IS_GC(type)) {
         obj = _PyObject_GC_Malloc(size);
-    else
+    } else {
         obj = (PyObject *)PyObject_MALLOC(size);
+        malloc_python_hook_type_gen_alloc(
+            type->tp_name, (int)type->tp_basicsize, (int)type->tp_itemsize, (int)size, (int)nitems,
+            (uint64_t)obj);
+    }
 
     if (obj == NULL)
         return PyErr_NoMemory();
@@ -2663,6 +2667,9 @@ type_new(PyTypeObject *metatype, PyObject *args, PyObject *kwds)
             /* Silently truncate the docstring if it contains null bytes. */
             len = strlen(doc_str);
             tp_doc = (char *)PyObject_MALLOC(len + 1);
+            malloc_python_hook_type_gen_alloc(
+                "typeobject.c 2673", 0, 0, (int)(len), 0,
+                (uint64_t)tp_doc);
             if (tp_doc == NULL) {
                 PyErr_NoMemory();
                 goto error;
@@ -2961,6 +2968,9 @@ PyType_FromSpecWithBases(PyType_Spec *spec, PyObject *bases)
             const char *old_doc = _PyType_DocWithoutSignature(type->tp_name, slot->pfunc);
             size_t len = strlen(old_doc)+1;
             char *tp_doc = PyObject_MALLOC(len);
+            malloc_python_hook_type_gen_alloc(
+                "typeobject.c 2974", 0, 0, (int)(len), 0,
+                (uint64_t)tp_doc);
             if (tp_doc == NULL) {
                 type->tp_doc = NULL;
                 PyErr_NoMemory();

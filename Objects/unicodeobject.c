@@ -1191,6 +1191,10 @@ _PyUnicode_New(Py_ssize_t length)
         return NULL;
     }
 
+    malloc_python_hook_type_gen_alloc(
+                "unicodeobject.c 1195", 0, 0, (int)(new_size), 0,
+                (uint64_t)(_PyUnicode_WSTR(unicode)));
+
     /* Initialize the first element to guard against cases where
      * the caller fails before initializing str -- unicode_resize()
      * reads str[0], and the Keep-Alive optimization can keep memory
@@ -1366,6 +1370,11 @@ PyUnicode_New(Py_ssize_t size, Py_UCS4 maxchar)
     obj = (PyObject *) PyObject_MALLOC(struct_size + (size + 1) * char_size);
     if (obj == NULL)
         return PyErr_NoMemory();
+
+    malloc_python_hook_type_gen_alloc(
+        "unicodeobject.c 1375", 0, 0, (int)(struct_size + (size + 1) * char_size), 0,
+        (uint64_t)(obj));
+
     obj = PyObject_INIT(obj, &PyUnicode_Type);
     if (obj == NULL)
         return NULL;
@@ -1750,6 +1759,11 @@ _PyUnicode_Ready(PyObject *unicode)
             PyErr_NoMemory();
             return -1;
         }
+
+        malloc_python_hook_type_gen_alloc(
+            "unicodeobject.c 1764", 0, 0, (int)(_PyUnicode_WSTR_LENGTH(unicode) + 1), 0,
+            (uint64_t)(_PyUnicode_DATA_ANY(unicode)));
+
         _PyUnicode_CONVERT_BYTES(wchar_t, unsigned char,
                                 _PyUnicode_WSTR(unicode), end,
                                 PyUnicode_1BYTE_DATA(unicode));
@@ -1792,6 +1806,11 @@ _PyUnicode_Ready(PyObject *unicode)
             PyErr_NoMemory();
             return -1;
         }
+
+        malloc_python_hook_type_gen_alloc(
+            "unicodeobject.c 1811", 0, 0, (int)(2 * (_PyUnicode_WSTR_LENGTH(unicode) + 1)), 0,
+            (uint64_t)(_PyUnicode_DATA_ANY(unicode)));
+
         _PyUnicode_CONVERT_BYTES(wchar_t, Py_UCS2,
                                 _PyUnicode_WSTR(unicode), end,
                                 PyUnicode_2BYTE_DATA(unicode));
@@ -1820,6 +1839,11 @@ _PyUnicode_Ready(PyObject *unicode)
             PyErr_NoMemory();
             return -1;
         }
+
+        malloc_python_hook_type_gen_alloc(
+            "unicodeobject.c 1844", 0, 0, (int)(4 * (length_wo_surrogates + 1)), 0,
+            (uint64_t)(_PyUnicode_DATA_ANY(unicode)));
+
         _PyUnicode_LENGTH(unicode) = length_wo_surrogates;
         _PyUnicode_STATE(unicode).kind = PyUnicode_4BYTE_KIND;
         _PyUnicode_UTF8(unicode) = NULL;
@@ -3955,6 +3979,11 @@ PyUnicode_AsUTF8AndSize(PyObject *unicode, Py_ssize_t *psize)
             Py_DECREF(bytes);
             return NULL;
         }
+
+        malloc_python_hook_type_gen_alloc(
+            "unicodeobject.c 3984", 0, 0, (int)(PyBytes_GET_SIZE(bytes) + 1), 0,
+            (uint64_t)(_PyUnicode_UTF8(unicode)));
+
         _PyUnicode_UTF8_LENGTH(unicode) = PyBytes_GET_SIZE(bytes);
         memcpy(_PyUnicode_UTF8(unicode),
                   PyBytes_AS_STRING(bytes),
@@ -3996,6 +4025,11 @@ PyUnicode_AsUnicodeAndSize(PyObject *unicode, Py_ssize_t *size)
             PyErr_NoMemory();
             return NULL;
         }
+
+        malloc_python_hook_type_gen_alloc(
+            "unicodeobject.c 4030", 0, 0, (int)(sizeof(wchar_t) * (wlen + 1)), 0,
+            (uint64_t)(w));
+
         unicode_copy_as_widechar(unicode, w, wlen + 1);
         _PyUnicode_WSTR(unicode) = w;
         if (!PyUnicode_IS_COMPACT_ASCII(unicode)) {
@@ -8239,6 +8273,10 @@ PyUnicode_BuildEncodingMap(PyObject* string)
                              16*count2 + 128*count3 - 1);
     if (!result)
         return PyErr_NoMemory();
+    malloc_python_hook_type_gen_alloc(
+        "unicodeobject.c 8277", 0, 0, (int)(sizeof(struct encoding_map) +
+                             16*count2 + 128*count3 - 1), 0,
+        (uint64_t)(result));
     PyObject_Init(result, &EncodingMapType);
     mresult = (struct encoding_map*)result;
     mresult->count2 = count2;
@@ -15123,6 +15161,10 @@ unicode_subtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         PyErr_NoMemory();
         goto onError;
     }
+
+    malloc_python_hook_type_gen_alloc(
+        "unicodeobject.c 15166", 0, 0, (int)((length + 1) * char_size), 0,
+        (uint64_t)(data));
 
     _PyUnicode_DATA_ANY(self) = data;
     if (share_utf8) {

@@ -86,6 +86,9 @@ _PyBytes_FromSize(Py_ssize_t size, int use_calloc)
         op = (PyBytesObject *)PyObject_Malloc(PyBytesObject_SIZE + size);
     if (op == NULL)
         return PyErr_NoMemory();
+    malloc_python_hook_type_gen_alloc(
+        "bytesobject.c 90", 0, 0, (int)(PyBytesObject_SIZE + size), 0,
+        (uint64_t)op);
     (void)PyObject_INIT_VAR(op, &PyBytes_Type, size);
     op->ob_shash = -1;
     if (!use_calloc)
@@ -164,6 +167,9 @@ PyBytes_FromString(const char *str)
     op = (PyBytesObject *)PyObject_MALLOC(PyBytesObject_SIZE + size);
     if (op == NULL)
         return PyErr_NoMemory();
+    malloc_python_hook_type_gen_alloc(
+        "bytesobject.c 171", 0, 0, (int)(PyBytesObject_SIZE + size), 0,
+        (uint64_t)op);
     (void)PyObject_INIT_VAR(op, &PyBytes_Type, size);
     op->ob_shash = -1;
     memcpy(op->ob_sval, str, size+1);
@@ -1505,6 +1511,9 @@ bytes_repeat(PyBytesObject *a, Py_ssize_t n)
     op = (PyBytesObject *)PyObject_MALLOC(PyBytesObject_SIZE + nbytes);
     if (op == NULL)
         return PyErr_NoMemory();
+    malloc_python_hook_type_gen_alloc(
+        "bytesobject.c 1515", 0, 0, (int)(PyBytesObject_SIZE + nbytes), 0,
+        (uint64_t)op);
     (void)PyObject_INIT_VAR(op, &PyBytes_Type, size);
     op->ob_shash = -1;
     op->ob_sval[size] = '\0';

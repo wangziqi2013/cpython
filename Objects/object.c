@@ -282,6 +282,9 @@ _PyObject_New(PyTypeObject *tp)
     op = (PyObject *) PyObject_MALLOC(_PyObject_SIZE(tp));
     if (op == NULL)
         return PyErr_NoMemory();
+    malloc_python_hook_type_gen_alloc(
+        tp->tp_name, (int)tp->tp_basicsize, (int)tp->tp_itemsize, 0, 0,
+        (uint64_t)op);
     return PyObject_INIT(op, tp);
 }
 
@@ -293,6 +296,9 @@ _PyObject_NewVar(PyTypeObject *tp, Py_ssize_t nitems)
     op = (PyVarObject *) PyObject_MALLOC(size);
     if (op == NULL)
         return (PyVarObject *)PyErr_NoMemory();
+    malloc_python_hook_type_gen_alloc(
+        tp->tp_name, (int)tp->tp_basicsize, (int)tp->tp_itemsize, size, nitems,
+        (uint64_t)op);
     return PyObject_INIT_VAR(op, tp, nitems);
 }
 

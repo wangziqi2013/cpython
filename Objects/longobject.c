@@ -278,6 +278,9 @@ _PyLong_New(Py_ssize_t size)
         PyErr_NoMemory();
         return NULL;
     }
+    malloc_python_hook_type_gen_alloc(
+        "longobject.c 282", 0, 0, (int)(offsetof(PyLongObject, ob_digit) + size*sizeof(digit)), 0,
+        (uint64_t)result);
     return (PyLongObject*)PyObject_INIT_VAR(result, &PyLong_Type, size);
 }
 
