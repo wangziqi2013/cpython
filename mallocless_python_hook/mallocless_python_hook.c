@@ -57,27 +57,39 @@ void mallocless_python_hook_PyObject_Free(void *ptr) {
   return;
 }
 
+static type_gen_alloc_t *type_gen_alloc_head = NULL;
+static type_gen_alloc_t *type_gen_alloc_tail = NULL;
+uint64_t type_gen_alloc_count = 0UL;
+
 void malloc_python_hook_Python_start() {
+  printf("========== Python Start ==========\n");
+  printf("==================================\n");
   return;
 }
 
 void malloc_python_hook_Python_end() {
   // Print statistics
+  printf("========== Python End ==========\n");
+  printf("type_gen_alloc_count = %lu\n", type_gen_alloc_count);
+  type_gen_alloc_t *curr = type_gen_alloc_head;
+  const char filename = "malloc_python_hook_type_gen_alloc.csv";
+  FILE *fp = fopen(filename, "w");
+  if(fp == NULL) {
+    printf("Cannot open file for write: \"%s\"\n", filename);
+  }
+  while(curr->next != NULL) {
+    fprintf(fp, "%s,%d,%d,%d,%d,%lu", 
+      curr->name, curr->base_size, curr->item_size, curr->total_size, curr->item_count, curr->ret
+      );
+    curr = curr->next;
+  }
+  fclose(fp);
+  printf("================================\n");
   return;
 }
 
-typedef struct type_gen_alloc_struct_t {
-  const char *name;
-  int base_size, element_size, total_size;
-  uint64_t ret;
-  struct type_gen_alloc_struct_t *next;
-} type_gen_alloc_t;
-
-static type_gen_alloc_t *type_gen_alloc_head = NULL;
-static type_gen_alloc_t *type_gen_alloc_tail = NULL;
-
 void malloc_python_hook_type_gen_alloc(
-    const char *name, int base_size, int element_size, int total_size, uint64_t ret) {
+    const char *name, int base_size, int item_size, int total_size, int item_count, uint64_t ret) {
   type_gen_alloc_t *alloc = (type_gen_alloc_t *)malloc(sizeof(type_gen_alloc_t *));
   if(alloc == NULL) {
     printf("malloc_python_hook_type_gen_alloc() out of memory\n");
@@ -91,8 +103,9 @@ void malloc_python_hook_type_gen_alloc(
   }
   strcpy(alloc->name, name);
   alloc->base_size = base_size;
-  alloc->element_size = element_size;
+  alloc->item_size = item_size;
   alloc->total_size = total_size;
+  alloc->item_count = item_count;
   alloc->ret = ret;
   if(type_gen_alloc_head == NULL) {
     type_gen_alloc_head = type_gen_alloc_tail = alloc;
@@ -100,6 +113,8 @@ void malloc_python_hook_type_gen_alloc(
     type_gen_alloc_tail->next = alloc;
     type_gen_alloc_tail = alloc;
   }
+  // Also increment the counter
+  type_gen_alloc_count++;
   return;
 }
 
