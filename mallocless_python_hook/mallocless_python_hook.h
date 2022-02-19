@@ -3,6 +3,9 @@
 #define _MALLOCLESS_PYTHON_HOOK_H
 
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "zsim_magic_ops.h"
 
 #ifdef __cplusplus
@@ -10,12 +13,18 @@ extern "C" {
 #endif
 
 typedef struct type_gen_alloc_struct_t {
-  const char *name;
+  char *name;
   int base_size, item_size, total_size;
   int item_count;
   uint64_t ret;
   struct type_gen_alloc_struct_t *next;
 } type_gen_alloc_t;
+
+typedef struct pyobject_alloc_struct_t {
+  int size;
+  uint64_t ret;
+  struct pyobject_alloc_struct_t *next;
+} pyobject_alloc_t;
 
 void mallocless_python_hook_PyMem_RawMalloc(uint64_t size, void *ptr);
 void mallocless_python_hook_PyMem_RawCalloc(uint64_t count, uint64_t size, void *ptr);

@@ -34,8 +34,8 @@ void mallocless_python_hook_PyMem_RawFree(void *ptr) {
 }
 
 void mallocless_python_hook_PyObject_Malloc(uint64_t size, void *ptr) {
-  zsim_magic_op_malloc((int)size, (uint64_t)ptr);
-  zsim_magic_op_resume_sim();
+  //zsim_magic_op_malloc((int)size, (uint64_t)ptr);
+  //zsim_magic_op_resume_sim();
   return;
 }
 
@@ -72,13 +72,14 @@ void malloc_python_hook_Python_end() {
   printf("========== Python End ==========\n");
   printf("type_gen_alloc_count = %lu\n", type_gen_alloc_count);
   type_gen_alloc_t *curr = type_gen_alloc_head;
-  const char filename = "malloc_python_hook_type_gen_alloc.csv";
+  const char *filename = "malloc_python_hook_type_gen_alloc.csv";
   FILE *fp = fopen(filename, "w");
   if(fp == NULL) {
     printf("Cannot open file for write: \"%s\"\n", filename);
   }
   while(curr->next != NULL) {
-    fprintf(fp, "%s,%d,%d,%d,%d,%lu", 
+    fprintf(fp, 
+      "%s,%d,%d,%d,%d,%lu", 
       curr->name, curr->base_size, curr->item_size, curr->total_size, curr->item_count, curr->ret
       );
     curr = curr->next;
@@ -90,7 +91,7 @@ void malloc_python_hook_Python_end() {
 
 void malloc_python_hook_type_gen_alloc(
     const char *name, int base_size, int item_size, int total_size, int item_count, uint64_t ret) {
-  type_gen_alloc_t *alloc = (type_gen_alloc_t *)malloc(sizeof(type_gen_alloc_t *));
+  type_gen_alloc_t *alloc = (type_gen_alloc_t *)malloc(sizeof(type_gen_alloc_t));
   if(alloc == NULL) {
     printf("malloc_python_hook_type_gen_alloc() out of memory\n");
     exit(1);
