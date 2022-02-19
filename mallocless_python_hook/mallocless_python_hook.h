@@ -12,20 +12,6 @@
 extern "C" {
 #endif
 
-typedef struct type_gen_alloc_struct_t {
-  char *name;
-  int base_size, item_size, total_size;
-  int item_count;
-  uint64_t ret;
-  struct type_gen_alloc_struct_t *next;
-} type_gen_alloc_t;
-
-typedef struct pyobject_alloc_struct_t {
-  int size;
-  uint64_t ret;
-  struct pyobject_alloc_struct_t *next;
-} pyobject_alloc_t;
-
 void mallocless_python_hook_PyMem_RawMalloc(uint64_t size, void *ptr);
 void mallocless_python_hook_PyMem_RawCalloc(uint64_t count, uint64_t size, void *ptr);
 void mallocless_python_hook_PyMem_RawRealloc(void *old_ptr, uint64_t size, void *new_ptr);

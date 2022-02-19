@@ -5,6 +5,29 @@
 extern "C" {
 #endif
 
+#define PY_ALLOC_OBJECT 1
+#define PY_ALLOC_MEM    2
+#define PY_ALLOC_MALLOC 3
+
+typedef struct pyobject_alloc_struct_t {
+  int type;
+  uint64_t size;
+  uint64_t ret;
+  struct pyobject_alloc_struct_t *next;
+} pyalloc_t;
+
+typedef struct type_gen_alloc_struct_t {
+  char *name;
+  int base_size, item_size, total_size;
+  int item_count;
+  uint64_t ret;
+  struct type_gen_alloc_struct_t *next;
+} type_gen_alloc_t;
+
+static type_gen_alloc_t *pyalloc_head = NULL;
+static type_gen_alloc_t *pyalloc_tail = NULL;
+uint64_t pyalloc_count = 0UL;
+
 void mallocless_python_hook_PyMem_RawMalloc(uint64_t size, void *ptr) {
   //(void)size; (void)ptr;
   zsim_magic_op_malloc((int)size, (uint64_t)ptr);
@@ -36,6 +59,21 @@ void mallocless_python_hook_PyMem_RawFree(void *ptr) {
 void mallocless_python_hook_PyObject_Malloc(uint64_t size, void *ptr) {
   //zsim_magic_op_malloc((int)size, (uint64_t)ptr);
   //zsim_magic_op_resume_sim();
+  pyalloc_t *alloc = (pyalloc_t *)malloc(sizeof(pyalloc_t));
+  if(alloc == NULL) {
+    printf("mallocless_python_hook_PyObject_Malloc() out of memory\n");
+    exit(1);
+  }
+  alloc->next = NULL;
+  alloc->size = size;
+  alloc->ret = (uint64_t)ptr;
+  if(pyalloc_head == NULL) {
+    pyalloc_head = pyalloc_tail = alloc;
+  } else {
+    pyalloc_tail->next = alloc;
+    pyalloc_tail = alloc;
+  }
+  pyalloc_count++;
   return;
 }
 
@@ -76,6 +114,7 @@ void malloc_python_hook_Python_end() {
   FILE *fp = fopen(filename, "w");
   if(fp == NULL) {
     printf("Cannot open file for write: \"%s\"\n", filename);
+    exit(1);
   }
   while(curr->next != NULL) {
     fprintf(fp, 
