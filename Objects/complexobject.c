@@ -235,6 +235,9 @@ PyComplex_FromCComplex(Py_complex cval)
     op = (PyComplexObject *) PyObject_MALLOC(sizeof(PyComplexObject));
     if (op == NULL)
         return PyErr_NoMemory();
+    malloc_python_hook_type_gen_alloc(
+        "complexobject.c 239", 0, 0, (int)(sizeof(PyComplexObject)), 0,
+        (uint64_t)(op));
     (void)PyObject_INIT(op, &PyComplex_Type);
     op->cval = cval;
     return (PyObject *) op;

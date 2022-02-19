@@ -122,6 +122,9 @@ PyFloat_FromDouble(double fval)
         op = (PyFloatObject*) PyObject_MALLOC(sizeof(PyFloatObject));
         if (!op)
             return PyErr_NoMemory();
+        malloc_python_hook_type_gen_alloc(
+            "floatobject.c 126", 0, 0, (int)(sizeof(PyFloatObject)), 0,
+            (uint64_t)(op));
     }
     /* Inline PyObject_New */
     (void)PyObject_INIT(op, &PyFloat_Type);
