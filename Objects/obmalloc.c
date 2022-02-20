@@ -1980,7 +1980,7 @@ _PyObject_Realloc(void *ctx, void *ptr, size_t nbytes)
 {
     void *ptr2;
     void *new_ptr;
-    zsim_magic_op_pause_sim();
+    //zsim_magic_op_pause_sim();
     if (ptr == NULL) {
         new_ptr = _PyObject_Malloc(ctx, nbytes);
     } else if (pymalloc_realloc(ctx, &ptr2, ptr, nbytes)) {
@@ -1988,7 +1988,7 @@ _PyObject_Realloc(void *ctx, void *ptr, size_t nbytes)
     } else {
         new_ptr = PyMem_RawRealloc(ptr, nbytes);
     }
-    mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
+    //mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
     return new_ptr;
 }
 
