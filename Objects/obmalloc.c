@@ -1984,11 +1984,15 @@ _PyObject_Realloc(void *ctx, void *ptr, size_t nbytes)
     if (ptr == NULL) {
         new_ptr = _PyObject_Malloc(ctx, nbytes);
     } else if (pymalloc_realloc(ctx, &ptr2, ptr, nbytes)) {
+        // In this case, either no alloc happened (shrink), or some allocation happens,
+        // and malloc will capture them
         new_ptr = ptr2;
     } else {
         new_ptr = PyMem_RawRealloc(ptr, nbytes);
+        if(new_ptr != ptr) {
+            mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
+        }
     }
-    mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
     return new_ptr;
 }
 
