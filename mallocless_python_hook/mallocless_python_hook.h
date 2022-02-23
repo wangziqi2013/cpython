@@ -12,6 +12,14 @@
 extern "C" {
 #endif
 
+// This var indicates the nest level of allocations 
+// We use this to detect recursive calls (which will be ignored, because we only care the top-level
+// allocation call).
+extern int alloc_nest_level;
+
+void malloc_python_hook_enter_alloc();
+void malloc_python_hook_leave_alloc();
+
 void malloc_python_hook_pyalloc_stat_print();
 void malloc_python_hook_pyalloc_add(int type, uint64_t arg1, uint64_t arg2, uint64_t ret);
 
@@ -19,6 +27,11 @@ void mallocless_python_hook_PyMem_RawMalloc(uint64_t size, void *ptr);
 void mallocless_python_hook_PyMem_RawCalloc(uint64_t count, uint64_t size, void *ptr);
 void mallocless_python_hook_PyMem_RawRealloc(void *old_ptr, uint64_t size, void *new_ptr);
 void mallocless_python_hook_PyMem_RawFree(void *ptr);
+
+void mallocless_python_hook_PyMem_Malloc(uint64_t size, void *ptr);
+void mallocless_python_hook_PyMem_Calloc(uint64_t count, uint64_t size, void *ptr);
+void mallocless_python_hook_PyMem_Realloc(void *old_ptr, uint64_t size, void *new_ptr);
+void mallocless_python_hook_PyMem_Free(void *ptr);
 
 void mallocless_python_hook_PyObject_Malloc(uint64_t size, void *ptr);
 void mallocless_python_hook_PyObject_Calloc(uint64_t count, uint64_t size, void *ptr);

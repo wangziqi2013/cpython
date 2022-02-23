@@ -33,6 +33,18 @@ typedef struct type_gen_alloc_struct_t {
   struct type_gen_alloc_struct_t *next;
 } type_gen_alloc_t;
 
+int alloc_nest_level = 0;
+
+void malloc_python_hook_enter_alloc() {
+  alloc_nest_level++;
+  return;
+}
+
+void malloc_python_hook_leave_alloc() {
+  alloc_nest_level--;
+  return;
+}
+
 static pyalloc_t *pyalloc_head = NULL;
 static pyalloc_t *pyalloc_tail = NULL;
 
