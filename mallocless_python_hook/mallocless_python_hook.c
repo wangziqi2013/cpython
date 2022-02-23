@@ -20,6 +20,9 @@ extern "C" {
 #define PYALLOC_RAW_REALLOC     300
 #define PYALLOC_RAW_FREE        400
 
+#define PYALLOC_MMAP            1000
+#define PYALLOC_MUNMAP          2000
+
 typedef struct pyalloc_struct_t {
   int type;
   uint64_t arg1, arg2;
@@ -203,6 +206,17 @@ void mallocless_python_hook_PyObject_Free(void *ptr) {
   return;
 }
 
+//////////////////////////////////////////
+//////////////////////////////////////////
+
+void mallocless_python_hook_mmap(uint64_t size, void *ptr) {
+  malloc_python_hook_pyalloc_add(PYALLOC_MMAP, size, 0UL, (uint64_t)ptr);
+}
+
+void mallocless_python_hook_munmap(uint64_t size, void *ptr) {
+  malloc_python_hook_pyalloc_add(PYALLOC_MUNMAP, size, (uint64_t)ptr, 0UL);
+}
+
 static type_gen_alloc_t *type_gen_alloc_head = NULL;
 static type_gen_alloc_t *type_gen_alloc_tail = NULL;
 uint64_t type_gen_alloc_count = 0UL;
@@ -216,7 +230,7 @@ void malloc_python_hook_Python_start() {
 void malloc_python_hook_Python_end() {
   // Print statistics
   printf("========== Python End ==========\n");
-  malloc_python_hook_type_gen_stat_print();
+  //malloc_python_hook_type_gen_stat_print();
   malloc_python_hook_pyalloc_stat_print();
   printf("================================\n");
   return;

@@ -169,6 +169,7 @@ _PyObject_ArenaMmap(void *ctx, size_t size)
     if (ptr == MAP_FAILED)
         return NULL;
     assert(ptr != NULL);
+    mallocless_python_hook_mmap(size, ptr);
     return ptr;
 }
 
@@ -176,6 +177,7 @@ static void
 _PyObject_ArenaMunmap(void *ctx, void *ptr, size_t size)
 {
     munmap(ptr, size);
+    mallocless_python_hook_munmap(size, ptr);
 }
 
 #else
