@@ -23,10 +23,10 @@ void malloc_python_hook_leave_alloc();
 void malloc_python_hook_pyalloc_stat_print();
 void malloc_python_hook_pyalloc_add(int type, uint64_t arg1, uint64_t arg2, uint64_t ret);
 
-void mallocless_python_hook_PyMem_RawMalloc(uint64_t size, void *ptr);
-void mallocless_python_hook_PyMem_RawCalloc(uint64_t count, uint64_t size, void *ptr);
-void mallocless_python_hook_PyMem_RawRealloc(void *old_ptr, uint64_t size, void *new_ptr);
-void mallocless_python_hook_PyMem_RawFree(void *ptr);
+void mallocless_python_hook_RawMalloc(uint64_t size, void *ptr);
+void mallocless_python_hook_RawCalloc(uint64_t count, uint64_t size, void *ptr);
+void mallocless_python_hook_RawRealloc(void *old_ptr, uint64_t size, void *new_ptr);
+void mallocless_python_hook_RawFree(void *ptr);
 
 void mallocless_python_hook_PyMem_Malloc(uint64_t size, void *ptr);
 void mallocless_python_hook_PyMem_Calloc(uint64_t count, uint64_t size, void *ptr);

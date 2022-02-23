@@ -9,10 +9,12 @@ extern "C" {
 #define PYALLOC_OBJECT_CALLOC   2
 #define PYALLOC_OBJECT_REALLOC  3
 #define PYALLOC_OBJECT_FREE     4
-#define PYALLOC_MEM_MALLOC      10
-#define PYALLOC_MEM_CALLOC      20
-#define PYALLOC_MEM_REALLOC     30
-#define PYALLOC_MEM_FREE        40
+
+#define PYALLOC_PYMEM_MALLOC      10
+#define PYALLOC_PYMEM_CALLOC      20
+#define PYALLOC_PYMEM_REALLOC     30
+#define PYALLOC_PYMEM_FREE        40
+
 #define PYALLOC_RAW_MALLOC      100
 #define PYALLOC_RAW_CALLOC      200
 #define PYALLOC_RAW_REALLOC     300
@@ -48,13 +50,32 @@ void malloc_python_hook_leave_alloc() {
 static pyalloc_t *pyalloc_head = NULL;
 static pyalloc_t *pyalloc_tail = NULL;
 
+uint64_t pyalloc_raw_malloc_count = 0UL;
+uint64_t pyalloc_raw_calloc_count = 0UL;
+uint64_t pyalloc_raw_realloc_count = 0UL;
+uint64_t pyalloc_raw_free_count = 0UL;
+
+uint64_t pyalloc_pymem_malloc_count = 0UL;
+uint64_t pyalloc_pymem_calloc_count = 0UL;
+uint64_t pyalloc_pymem_realloc_count = 0UL;
+uint64_t pyalloc_pymem_free_count = 0UL;
+
 uint64_t pyalloc_object_malloc_count = 0UL;
 uint64_t pyalloc_object_calloc_count = 0UL;
 uint64_t pyalloc_object_realloc_count = 0UL;
 uint64_t pyalloc_object_free_count = 0UL;
 
 void malloc_python_hook_pyalloc_stat_print() {
-  printf("Object:\n");
+  printf("  pyalloc_raw_malloc_count = %lu\n", pyalloc_raw_malloc_count);
+  printf("  pyalloc_raw_calloc_count = %lu\n", pyalloc_raw_calloc_count);
+  printf("  pyalloc_raw_realloc_count = %lu\n", pyalloc_raw_realloc_count);
+  printf("  pyalloc_raw_free_count = %lu\n", pyalloc_raw_free_count);
+  printf("-----\n");
+  printf("  pyalloc_pymem_malloc_count = %lu\n", pyalloc_pymem_malloc_count);
+  printf("  pyalloc_pymem_calloc_count = %lu\n", pyalloc_pymem_calloc_count);
+  printf("  pyalloc_pymem_realloc_count = %lu\n", pyalloc_pymem_realloc_count);
+  printf("  pyalloc_pymem_free_count = %lu\n", pyalloc_pymem_free_count);
+  printf("-----\n");
   printf("  pyalloc_object_malloc_count = %lu\n", pyalloc_object_malloc_count);
   printf("  pyalloc_object_calloc_count = %lu\n", pyalloc_object_calloc_count);
   printf("  pyalloc_object_realloc_count = %lu\n", pyalloc_object_realloc_count);
@@ -95,6 +116,16 @@ void malloc_python_hook_pyalloc_add(int type, uint64_t arg1, uint64_t arg2, uint
     pyalloc_tail = alloc;
   }
   switch(type) {
+    case PYALLOC_RAW_MALLOC: pyalloc_raw_malloc_count++; break;
+    case PYALLOC_RAW_CALLOC: pyalloc_raw_calloc_count++; break;
+    case PYALLOC_RAW_REALLOC: pyalloc_raw_realloc_count++; break;
+    case PYALLOC_RAW_FREE: pyalloc_raw_free_count++; break;
+    //
+    case PYALLOC_PYMEM_MALLOC: pyalloc_pymem_malloc_count++; break;
+    case PYALLOC_PYMEM_CALLOC: pyalloc_pymem_calloc_count++; break;
+    case PYALLOC_PYMEM_REALLOC: pyalloc_pymem_realloc_count++; break;
+    case PYALLOC_PYMEM_FREE: pyalloc_pymem_free_count++; break;
+    //
     case PYALLOC_OBJECT_MALLOC: pyalloc_object_malloc_count++; break;
     case PYALLOC_OBJECT_CALLOC: pyalloc_object_calloc_count++; break;
     case PYALLOC_OBJECT_REALLOC: pyalloc_object_realloc_count++; break;
@@ -104,58 +135,70 @@ void malloc_python_hook_pyalloc_add(int type, uint64_t arg1, uint64_t arg2, uint
   return;
 }
 
-void mallocless_python_hook_PyMem_RawMalloc(uint64_t size, void *ptr) {
-  //(void)size; (void)ptr;
-  zsim_magic_op_malloc((int)size, (uint64_t)ptr);
-  zsim_magic_op_resume_sim();
+void mallocless_python_hook_RawMalloc(uint64_t size, void *ptr) {
+  malloc_python_hook_pyalloc_add(PYALLOC_RAW_MALLOC, size, 0, (uint64_t)ptr);
   return;
 }
 
-void mallocless_python_hook_PyMem_RawCalloc(uint64_t count, uint64_t size, void *ptr) {
-  //(void)count; (void)size; (void)ptr;
-  zsim_magic_op_calloc((int)count, (int)size, (uint64_t)ptr);
-  zsim_magic_op_resume_sim();
+void mallocless_python_hook_RawCalloc(uint64_t count, uint64_t size, void *ptr) {
+  malloc_python_hook_pyalloc_add(PYALLOC_RAW_CALLOC, count, size, (uint64_t)ptr);
   return;
 }
 
-void mallocless_python_hook_PyMem_RawRealloc(void *old_ptr, uint64_t size, void *new_ptr) {
-  //(void)old_ptr; (void)size; (void)new_ptr;
-  zsim_magic_op_realloc((uint64_t)old_ptr, (int)size, (uint64_t)new_ptr);
-  zsim_magic_op_resume_sim();
+void mallocless_python_hook_RawRealloc(void *old_ptr, uint64_t size, void *new_ptr) {
+  malloc_python_hook_pyalloc_add(PYALLOC_RAW_REALLOC, (uint64_t)old_ptr, size, (uint64_t)new_ptr);
   return;
 }
 
-void mallocless_python_hook_PyMem_RawFree(void *ptr) {
-  //(void)ptr;
-  zsim_magic_op_free((uint64_t)ptr);
-  zsim_magic_op_resume_sim();
+void mallocless_python_hook_RawFree(void *ptr) {
+  malloc_python_hook_pyalloc_add(PYALLOC_RAW_FREE, (uint64_t)ptr, 0UL, 0UL);
   return;
 }
+
+//////////////////////////////////////////
+//////////////////////////////////////////
+//////////////////////////////////////////
+
+void mallocless_python_hook_PyMem_Malloc(uint64_t size, void *ptr) {
+  malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_MALLOC, size, 0, (uint64_t)ptr);
+  return;
+}
+
+void mallocless_python_hook_PyMem_Calloc(uint64_t count, uint64_t size, void *ptr) {
+  malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_CALLOC, count, size, (uint64_t)ptr);
+  return;
+}
+
+void mallocless_python_hook_PyMem_Realloc(void *old_ptr, uint64_t size, void *new_ptr) {
+  malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_REALLOC, (uint64_t)old_ptr, size, (uint64_t)new_ptr);
+  return;
+}
+
+void mallocless_python_hook_PyMem_Free(void *ptr) {
+  malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_FREE, (uint64_t)ptr, 0UL, 0UL);
+  return;
+}
+
+//////////////////////////////////////////
+//////////////////////////////////////////
+//////////////////////////////////////////
 
 void mallocless_python_hook_PyObject_Malloc(uint64_t size, void *ptr) {
-  //zsim_magic_op_malloc((int)size, (uint64_t)ptr);
-  //zsim_magic_op_resume_sim();
   malloc_python_hook_pyalloc_add(PYALLOC_OBJECT_MALLOC, size, 0, (uint64_t)ptr);
   return;
 }
 
 void mallocless_python_hook_PyObject_Calloc(uint64_t count, uint64_t size, void *ptr) {
-  //zsim_magic_op_calloc((int)count, (int)size, (uint64_t)ptr);
-  //zsim_magic_op_resume_sim();
   malloc_python_hook_pyalloc_add(PYALLOC_OBJECT_CALLOC, count, size, (uint64_t)ptr);
   return;
 }
 
 void mallocless_python_hook_PyObject_Realloc(void *old_ptr, uint64_t size, void *new_ptr) {
-  //zsim_magic_op_realloc((uint64_t)old_ptr, (int)size, (uint64_t)new_ptr);
-  //zsim_magic_op_resume_sim();
   malloc_python_hook_pyalloc_add(PYALLOC_OBJECT_REALLOC, (uint64_t)old_ptr, size, (uint64_t)new_ptr);
   return;
 }
 
 void mallocless_python_hook_PyObject_Free(void *ptr) {
-  //zsim_magic_op_free((uint64_t)ptr);
-  //zsim_magic_op_resume_sim();
   malloc_python_hook_pyalloc_add(PYALLOC_OBJECT_FREE, (uint64_t)ptr, 0UL, 0UL);
   return;
 }

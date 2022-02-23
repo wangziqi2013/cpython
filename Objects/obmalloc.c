@@ -100,7 +100,7 @@ _PyMem_RawMalloc(void *ctx, size_t size)
         size = 1;
     void *ptr = malloc(size);
     if(alloc_nest_level == 0) {
-        mallocless_python_hook_PyMem_RawMalloc(size, ptr);
+        mallocless_python_hook_RawMalloc(size, ptr);
     }
     return ptr;
 }
@@ -118,7 +118,7 @@ _PyMem_RawCalloc(void *ctx, size_t nelem, size_t elsize)
     }
     void *ptr = calloc(nelem, elsize);
     if(alloc_nest_level == 0) {
-        mallocless_python_hook_PyMem_RawCalloc(nelem, elsize, ptr);
+        mallocless_python_hook_RawCalloc(nelem, elsize, ptr);
     }
     return ptr;
 }
@@ -130,7 +130,7 @@ _PyMem_RawRealloc(void *ctx, void *ptr, size_t size)
         size = 1;
     void *new_ptr = realloc(ptr, size);
     if(alloc_nest_level == 0) {
-        mallocless_python_hook_PyMem_RawRealloc(ptr, size, new_ptr);
+        mallocless_python_hook_RawRealloc(ptr, size, new_ptr);
     }
     return new_ptr;
 }
@@ -138,10 +138,10 @@ _PyMem_RawRealloc(void *ctx, void *ptr, size_t size)
 static void
 _PyMem_RawFree(void *ctx, void *ptr)
 {
-    if(alloc_nest_level == 0) {
-        mallocless_python_hook_PyMem_RawFree(ptr);
-    }
     free(ptr);
+    if(alloc_nest_level == 0) {
+        mallocless_python_hook_RawFree(ptr);
+    }
 }
 
 
