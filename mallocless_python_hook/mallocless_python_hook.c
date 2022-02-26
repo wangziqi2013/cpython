@@ -68,6 +68,9 @@ uint64_t pyalloc_object_calloc_count = 0UL;
 uint64_t pyalloc_object_realloc_count = 0UL;
 uint64_t pyalloc_object_free_count = 0UL;
 
+uint64_t pyalloc_mmap_count = 0UL;
+uint64_t pyalloc_munmap_count = 0UL;
+
 void malloc_python_hook_pyalloc_stat_print() {
   printf("  pyalloc_raw_malloc_count = %lu\n", pyalloc_raw_malloc_count);
   printf("  pyalloc_raw_calloc_count = %lu\n", pyalloc_raw_calloc_count);
@@ -83,6 +86,9 @@ void malloc_python_hook_pyalloc_stat_print() {
   printf("  pyalloc_object_calloc_count = %lu\n", pyalloc_object_calloc_count);
   printf("  pyalloc_object_realloc_count = %lu\n", pyalloc_object_realloc_count);
   printf("  pyalloc_object_free_count = %lu\n", pyalloc_object_free_count);
+  printf("-----\n");
+  printf("  pyalloc_mmap_count = %lu\n", pyalloc_mmap_count);
+  printf("  pyalloc_munmap_count = %lu\n", pyalloc_munmap_count);
   pyalloc_t *curr = pyalloc_head;
   const char *filename = "malloc_python_hook_py_alloc.csv";
   FILE *fp = fopen(filename, "w");
@@ -133,28 +139,31 @@ void malloc_python_hook_pyalloc_add(int type, uint64_t arg1, uint64_t arg2, uint
     case PYALLOC_OBJECT_CALLOC: pyalloc_object_calloc_count++; break;
     case PYALLOC_OBJECT_REALLOC: pyalloc_object_realloc_count++; break;
     case PYALLOC_OBJECT_FREE: pyalloc_object_free_count++; break;
+    //
+    case PYALLOC_MMAP: pyalloc_mmap_count++; break;
+    case PYALLOC_MUNMAP: pyalloc_munmap_count++; break;
     default: break;
   }
   return;
 }
 
 void mallocless_python_hook_RawMalloc(uint64_t size, void *ptr) {
-  malloc_python_hook_pyalloc_add(PYALLOC_RAW_MALLOC, size, 0, (uint64_t)ptr);
+  //malloc_python_hook_pyalloc_add(PYALLOC_RAW_MALLOC, size, 0, (uint64_t)ptr);
   return;
 }
 
 void mallocless_python_hook_RawCalloc(uint64_t count, uint64_t size, void *ptr) {
-  malloc_python_hook_pyalloc_add(PYALLOC_RAW_CALLOC, count, size, (uint64_t)ptr);
+  //malloc_python_hook_pyalloc_add(PYALLOC_RAW_CALLOC, count, size, (uint64_t)ptr);
   return;
 }
 
 void mallocless_python_hook_RawRealloc(void *old_ptr, uint64_t size, void *new_ptr) {
-  malloc_python_hook_pyalloc_add(PYALLOC_RAW_REALLOC, (uint64_t)old_ptr, size, (uint64_t)new_ptr);
+  //malloc_python_hook_pyalloc_add(PYALLOC_RAW_REALLOC, (uint64_t)old_ptr, size, (uint64_t)new_ptr);
   return;
 }
 
 void mallocless_python_hook_RawFree(void *ptr) {
-  malloc_python_hook_pyalloc_add(PYALLOC_RAW_FREE, (uint64_t)ptr, 0UL, 0UL);
+  //malloc_python_hook_pyalloc_add(PYALLOC_RAW_FREE, (uint64_t)ptr, 0UL, 0UL);
   return;
 }
 
@@ -163,22 +172,22 @@ void mallocless_python_hook_RawFree(void *ptr) {
 //////////////////////////////////////////
 
 void mallocless_python_hook_PyMem_Malloc(uint64_t size, void *ptr) {
-  malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_MALLOC, size, 0, (uint64_t)ptr);
+  //malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_MALLOC, size, 0, (uint64_t)ptr);
   return;
 }
 
 void mallocless_python_hook_PyMem_Calloc(uint64_t count, uint64_t size, void *ptr) {
-  malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_CALLOC, count, size, (uint64_t)ptr);
+  //malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_CALLOC, count, size, (uint64_t)ptr);
   return;
 }
 
 void mallocless_python_hook_PyMem_Realloc(void *old_ptr, uint64_t size, void *new_ptr) {
-  malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_REALLOC, (uint64_t)old_ptr, size, (uint64_t)new_ptr);
+  //malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_REALLOC, (uint64_t)old_ptr, size, (uint64_t)new_ptr);
   return;
 }
 
 void mallocless_python_hook_PyMem_Free(void *ptr) {
-  malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_FREE, (uint64_t)ptr, 0UL, 0UL);
+  //malloc_python_hook_pyalloc_add(PYALLOC_PYMEM_FREE, (uint64_t)ptr, 0UL, 0UL);
   return;
 }
 
@@ -216,6 +225,9 @@ void mallocless_python_hook_mmap(uint64_t size, void *ptr) {
 void mallocless_python_hook_munmap(uint64_t size, void *ptr) {
   malloc_python_hook_pyalloc_add(PYALLOC_MUNMAP, size, (uint64_t)ptr, 0UL);
 }
+
+//////////////////////////////////////////
+//////////////////////////////////////////
 
 static type_gen_alloc_t *type_gen_alloc_head = NULL;
 static type_gen_alloc_t *type_gen_alloc_tail = NULL;
