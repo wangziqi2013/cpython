@@ -1987,6 +1987,13 @@ _PyObject_Realloc(void *ctx, void *ptr, size_t nbytes)
         new_ptr = ptr2;
     } else {
         new_ptr = PyMem_RawRealloc(ptr, nbytes);
+        // Only register if the chunk actually changed. We do not capture
+        // the instructions for the raw realloc, but at least the free() and 
+        // malloc() semantics should be registered
+        if(new_ptr != ptr) {
+            zsim_magic_op_pause_sim(); // This is needed since the hook call back will decrement the pause counter
+            mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
+        }
     }
     //mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
     return new_ptr;
