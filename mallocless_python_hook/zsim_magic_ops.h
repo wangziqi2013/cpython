@@ -28,6 +28,8 @@ enum {
   // Progress control
   ZSIM_MAGIC_OP_PAUSE_SIM,     // Pause simulation after it has started
   ZSIM_MAGIC_OP_RESUME_SIM,    // Resume simulation
+  ZSIM_MAGIC_OP_PAUSE_SIM_ALLOC, // Allocation pause
+  ZSIM_MAGIC_OP_PAUSE_SIM_FREE,  // Free pause
   // Stat control
   ZSIM_MAGIC_OP_APPEND_STAT_SNAPSHOT,
 };
@@ -39,6 +41,8 @@ typedef struct {
     void *arg;
     int rand_32;
     uint64_t rand_64;
+    uint64_t free_addr;   // pause for free
+    uint64_t alloc_size;  // pause for allocation
   };
 } zsim_magic_op_t;
 
@@ -67,6 +71,8 @@ void zsim_magic_op_hello_world();
 void zsim_magic_op_print_str(const char *s);
 void zsim_magic_op_start_sim();
 void zsim_magic_op_pause_sim();
+void zsim_magic_op_pause_sim_alloc();
+void zsim_magic_op_pause_sim_free();
 void zsim_magic_op_resume_sim();
 void zsim_magic_op_malloc(int size, uint64_t ptr);
 void zsim_magic_op_calloc(int count, int size, uint64_t ptr);

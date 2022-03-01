@@ -48,6 +48,22 @@ void zsim_magic_op_pause_sim() {
   return;
 }
 
+void zsim_magic_op_pause_sim_alloc(uint64_t alloc_size) {
+  zsim_magic_op_t op;
+  op.op = ZSIM_MAGIC_OP_PAUSE_SIM_ALLOC;
+  op.alloc_size = alloc_size;
+  zsim_magic_op(&op);
+  return;
+}
+
+void zsim_magic_op_pause_sim_free(uint64_t free_addr) {
+  zsim_magic_op_t op;
+  op.op = ZSIM_MAGIC_OP_PAUSE_SIM_FREE;
+  op.free_addr = free_addr;
+  zsim_magic_op(&op);
+  return;
+}
+
 void zsim_magic_op_resume_sim() {
   zsim_magic_op_t op;
   op.op = ZSIM_MAGIC_OP_RESUME_SIM;
