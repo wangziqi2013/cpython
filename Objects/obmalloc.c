@@ -1620,7 +1620,7 @@ failed:
 static void *
 _PyObject_Malloc(void *ctx, size_t nbytes)
 {
-    zsim_magic_op_pause_sim();
+    zsim_magic_op_pause_sim_alloc(nbytes); 
     void* ptr = pymalloc_alloc(ctx, nbytes);
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
@@ -1639,7 +1639,7 @@ _PyObject_Malloc(void *ctx, size_t nbytes)
 static void *
 _PyObject_Calloc(void *ctx, size_t nelem, size_t elsize)
 {
-    zsim_magic_op_pause_sim();
+    zsim_magic_op_pause_sim_alloc(nelem * elsize); 
     assert(elsize == 0 || nelem <= (size_t)PY_SSIZE_T_MAX / elsize);
     size_t nbytes = nelem * elsize;
 
@@ -1896,7 +1896,7 @@ _PyObject_Free(void *ctx, void *p)
     if (p == NULL) {
         return;
     }
-    zsim_magic_op_pause_sim();
+    zsim_magic_op_pause_sim_free((uint64_t)p);
     _Py_AllocatedBlocks--;
     if (!pymalloc_free(ctx, p)) {
         /* pymalloc didn't allocate this address */
@@ -1980,7 +1980,6 @@ _PyObject_Realloc(void *ctx, void *ptr, size_t nbytes)
 {
     void *ptr2;
     void *new_ptr;
-    //zsim_magic_op_pause_sim();
     if (ptr == NULL) {
         new_ptr = _PyObject_Malloc(ctx, nbytes);
     } else if (pymalloc_realloc(ctx, &ptr2, ptr, nbytes)) {
@@ -1991,7 +1990,8 @@ _PyObject_Realloc(void *ctx, void *ptr, size_t nbytes)
         // the instructions for the raw realloc, but at least the free() and 
         // malloc() semantics should be registered
         if(new_ptr != ptr) {
-            zsim_magic_op_pause_sim(); // This is needed since the hook call back will decrement the pause counter
+            // This is needed since the hook call back will decrement the pause counter
+            zsim_magic_op_pause_sim_alloc(nbytes); 
             mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
         }
     }
