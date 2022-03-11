@@ -1620,11 +1620,19 @@ failed:
 static void *
 _PyObject_Malloc(void *ctx, size_t nbytes)
 {
+    // XCHG R12, R12 -- Pause instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
     zsim_magic_op_pause_sim_alloc(nbytes); 
+    // XCHG R13, R13 -- Resume instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
     void* ptr = pymalloc_alloc(ctx, nbytes);
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
+        // XCHG R12, R12 -- Pause instruction issue
+        __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
         mallocless_python_hook_PyObject_Malloc(nbytes, ptr);
+        // XCHG R13, R13 -- Resume instruction issue
+        __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
         return ptr;
     }
 
@@ -1632,14 +1640,22 @@ _PyObject_Malloc(void *ctx, size_t nbytes)
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
     }
+    // XCHG R12, R12 -- Pause instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
     mallocless_python_hook_PyObject_Malloc(nbytes, ptr);
+    // XCHG R13, R13 -- Resume instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
     return ptr;
 }
 
 static void *
 _PyObject_Calloc(void *ctx, size_t nelem, size_t elsize)
 {
+    // XCHG R12, R12 -- Pause instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
     zsim_magic_op_pause_sim_alloc(nelem * elsize); 
+    // XCHG R13, R13 -- Resume instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
     assert(elsize == 0 || nelem <= (size_t)PY_SSIZE_T_MAX / elsize);
     size_t nbytes = nelem * elsize;
 
@@ -1647,7 +1663,11 @@ _PyObject_Calloc(void *ctx, size_t nelem, size_t elsize)
     if (ptr != NULL) {
         memset(ptr, 0, nbytes);
         _Py_AllocatedBlocks++;
+        // XCHG R12, R12 -- Pause instruction issue
+        __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
         mallocless_python_hook_PyObject_Calloc(nelem, elsize, ptr);
+        // XCHG R13, R13 -- Resume instruction issue
+        __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
         return ptr;
     }
 
@@ -1655,7 +1675,11 @@ _PyObject_Calloc(void *ctx, size_t nelem, size_t elsize)
     if (ptr != NULL) {
         _Py_AllocatedBlocks++;
     }
+    // XCHG R12, R12 -- Pause instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
     mallocless_python_hook_PyObject_Calloc(nelem, elsize, ptr);
+    // XCHG R13, R13 -- Resume instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
     return ptr;
 }
 
@@ -1896,13 +1920,21 @@ _PyObject_Free(void *ctx, void *p)
     if (p == NULL) {
         return;
     }
+    // XCHG R12, R12 -- Pause instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
     zsim_magic_op_pause_sim_free((uint64_t)p);
+    // XCHG R13, R13 -- Resume instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
     _Py_AllocatedBlocks--;
     if (!pymalloc_free(ctx, p)) {
         /* pymalloc didn't allocate this address */
         PyMem_RawFree(p);
     }
+    // XCHG R12, R12 -- Pause instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
     mallocless_python_hook_PyObject_Free(p);
+    // XCHG R13, R13 -- Resume instruction issue
+    __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
     return;
 }
 
@@ -1968,7 +2000,17 @@ pymalloc_realloc(void *ctx, void **newptr_p, void *p, size_t nbytes)
 
     bp = _PyObject_Malloc(ctx, nbytes);
     if (bp != NULL) {
+        // XCHG R12, R12 -- Pause instruction issue
+        __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
+        zsim_magic_op_pause_sim_memcpy((uint64_t)bp, (uint64_t)p, (uint64_t)size); 
+        // XCHG R13, R13 -- Resume instruction issue
+        __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
         memcpy(bp, p, size);
+        // XCHG R12, R12 -- Pause instruction issue
+        __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
+        mallocless_python_hook_memcpy(bp, p, (uint64_t)size);
+        // XCHG R13, R13 -- Resume instruction issue
+        __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
         _PyObject_Free(ctx, p);
     }
     *newptr_p = bp;
@@ -1991,8 +2033,12 @@ _PyObject_Realloc(void *ctx, void *ptr, size_t nbytes)
         // malloc() semantics should be registered
         if(new_ptr != ptr) {
             // This is needed since the hook call back will decrement the pause counter
+            // XCHG R12, R12 -- Pause instruction issue
+            __asm__ __volatile__ (".byte 0x4D, 0x87, 0xE4");
             zsim_magic_op_pause_sim_alloc(nbytes); 
             mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
+            // XCHG R13, R13 -- Resume instruction issue
+            __asm__ __volatile__ (".byte 0x4D, 0x87, 0xED");
         }
     }
     //mallocless_python_hook_PyObject_Realloc(ptr, nbytes, new_ptr);
