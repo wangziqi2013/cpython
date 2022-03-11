@@ -19,6 +19,8 @@ void mallocless_python_hook_PyObject_Calloc(uint64_t count, uint64_t size, void 
 void mallocless_python_hook_PyObject_Realloc(void *old_ptr, uint64_t size, void *new_ptr);
 void mallocless_python_hook_PyObject_Free(void *ptr);
 
+void mallocless_python_hook_memcpy(void *dest, void *src, uint64_t size);
+
 #ifdef __cplusplus
 }
 #endif
