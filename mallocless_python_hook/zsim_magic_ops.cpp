@@ -64,6 +64,16 @@ void zsim_magic_op_pause_sim_free(uint64_t free_addr) {
   return;
 }
 
+void zsim_magic_op_pause_sim_memcpy(uint64_t dest, uint64_t src, uint64_t size) {
+  zsim_magic_op_t op;
+  op.op = ZSIM_MAGIC_OP_PAUSE_SIM_MEMCPY;
+  op.memcpy_dest = dest;
+  op.memcpy_src = src;
+  op.memcpy_size = size;
+  zsim_magic_op(&op);
+  return;
+}
+
 void zsim_magic_op_resume_sim() {
   zsim_magic_op_t op;
   op.op = ZSIM_MAGIC_OP_RESUME_SIM;
@@ -112,6 +122,16 @@ void zsim_magic_op_free(uint64_t ptr) {
   alloc.ptr = ptr;
   op.arg = &alloc;
   op.op = ZSIM_MAGIC_OP_FREE;
+  zsim_magic_op(&op);
+  return;
+}
+
+void zsim_magic_op_memcpy(uint64_t dest, uint64_t src, uint64_t size) {
+  zsim_magic_op_t op;
+  op.memcpy_dest = dest;
+  op.memcpy_src = src;
+  op.memcpy_size = size;
+  op.op = ZSIM_MAGIC_OP_MEMCPY;
   zsim_magic_op(&op);
   return;
 }
