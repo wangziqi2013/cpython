@@ -12,7 +12,7 @@ void zsim_magic_op(zsim_magic_op_t *op) {
                      : /* no output */
                      : "a"(op)
                      : "%r10");
-  // XOR R10, R10
+  // XCHG R10, R10
   __asm__ __volatile__ (".byte 0x4D, 0x87, 0xD2");
   return;
 }
@@ -37,6 +37,13 @@ void zsim_magic_op_print_str(const char *s) {
 void zsim_magic_op_start_sim() {
   zsim_magic_op_t op;
   op.op = ZSIM_MAGIC_OP_START_SIM;
+  zsim_magic_op(&op);
+  return;
+}
+
+void zsim_magic_op_end_sim() {
+  zsim_magic_op_t op;
+  op.op = ZSIM_MAGIC_OP_END_SIM;
   zsim_magic_op(&op);
   return;
 }
@@ -70,6 +77,25 @@ void zsim_magic_op_pause_sim_memcpy(uint64_t dest, uint64_t src, uint64_t size) 
   op.memcpy_dest = dest;
   op.memcpy_src = src;
   op.memcpy_size = size;
+  zsim_magic_op(&op);
+  return;
+}
+
+void zsim_magic_op_pause_sim_mmap(uint64_t size, uint64_t prot, uint64_t flags) {
+  zsim_magic_op_t op;
+  op.op = ZSIM_MAGIC_OP_PAUSE_SIM_MMAP;
+  op.mmap_size = size;
+  op.mmap_prot = prot;
+  op.mmap_flags = flags;
+  zsim_magic_op(&op);
+  return;
+}
+
+void zsim_magic_op_pause_sim_munmap(uint64_t size, uint64_t addr) {
+  zsim_magic_op_t op;
+  op.op = ZSIM_MAGIC_OP_PAUSE_SIM_MUNMAP;
+  op.munmap_size = size;
+  op.munmap_addr = addr;
   zsim_magic_op(&op);
   return;
 }
@@ -134,6 +160,25 @@ void zsim_magic_op_memcpy(uint64_t dest, uint64_t src, uint64_t size) {
   op.op = ZSIM_MAGIC_OP_MEMCPY;
   zsim_magic_op(&op);
   return;
+}
+
+void zsim_magic_op_mmap(uint64_t size, uint64_t prot, uint64_t flags, uint64_t addr) {
+  zsim_magic_op_t op;
+  op.mmap_size = size;
+  op.mmap_prot = prot;
+  op.mmap_flags = flags;
+  op.mmap_addr = addr;
+  op.op = ZSIM_MAGIC_OP_MMAP;
+  zsim_magic_op(&op);
+  return;
+}
+
+void zsim_magic_op_munmap(uint64_t size, uint64_t addr) {
+  zsim_magic_op_t op;
+  op.munmap_size = size;
+  op.munmap_addr = addr;
+  op.op = ZSIM_MAGIC_OP_MMAP;
+  zsim_magic_op(&op);
 }
 
 void zsim_magic_op_append_stat_snapshot() {
