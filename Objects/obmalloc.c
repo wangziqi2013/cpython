@@ -1284,7 +1284,18 @@ new_arena(void)
     arenaobj = unused_arena_objects;
     unused_arena_objects = arenaobj->nextarena;
     assert(arenaobj->address == 0);
+
+    // This calls mmap
+    ZSIM_MAGIC_OP_PAUSE_ISSUE;
+    zsim_magic_op_pause_sim_mmap(ARENA_SIZE, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS); 
+    ZSIM_MAGIC_OP_RESUME_ISSUE;
+
     address = _PyObject_Arena.alloc(_PyObject_Arena.ctx, ARENA_SIZE);
+    
+    ZSIM_MAGIC_OP_PAUSE_ISSUE;
+    mallocless_python_hook_Mmap(ARENA_SIZE, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, address); 
+    ZSIM_MAGIC_OP_RESUME_ISSUE;
+
     if (address == NULL) {
         /* The allocation failed: return NULL after putting the
          * arenaobj back.
@@ -1828,9 +1839,18 @@ pymalloc_free(void *ctx, void *p)
         ao->nextarena = unused_arena_objects;
         unused_arena_objects = ao;
 
+        ZSIM_MAGIC_OP_PAUSE_ISSUE;
+        zsim_magic_op_pause_sim_munmap(ARENA_SIZE, (uint64_t)ao->address); 
+        ZSIM_MAGIC_OP_RESUME_ISSUE;
+
         /* Free the entire arena. */
         _PyObject_Arena.free(_PyObject_Arena.ctx,
                              (void *)ao->address, ARENA_SIZE);
+
+        ZSIM_MAGIC_OP_PAUSE_ISSUE;
+        mallocless_python_hook_Munmap(ARENA_SIZE, (void *)ao->address); 
+        ZSIM_MAGIC_OP_RESUME_ISSUE;
+
         ao->address = 0;                        /* mark unassociated */
         --narenas_currently_allocated;
 
