@@ -57,6 +57,18 @@ void mallocless_python_hook_PyObject_Free(void *ptr) {
   return;
 }
 
+void mallocless_python_hook_PyObject_Mmap(uint64_t size, uint64_t prot, uint64_t flags, void *ptr) {
+  zsim_magic_op_resume_sim();
+  zsim_magic_op_mmap(size, prot, flags, (uint64_t)ptr);
+  return;
+}
+
+void mallocless_python_hook_PyObject_Munmap(uint64_t size, void *ptr) {
+  zsim_magic_op_resume_sim();
+  zsim_magic_op_mmap(size, (uint64_t)ptr);
+  return;
+}
+
 void mallocless_python_hook_memcpy(void *dest, void *src, uint64_t size) {
   zsim_magic_op_resume_sim();
   zsim_magic_op_memcpy((uint64_t)dest, (uint64_t)src, (uint64_t)size);
