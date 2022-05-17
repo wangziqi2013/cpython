@@ -177,7 +177,7 @@ void zsim_magic_op_munmap(uint64_t size, uint64_t addr) {
   zsim_magic_op_t op;
   op.munmap_size = size;
   op.munmap_addr = addr;
-  op.op = ZSIM_MAGIC_OP_MMAP;
+  op.op = ZSIM_MAGIC_OP_MUNMAP;
   zsim_magic_op(&op);
 }
 
